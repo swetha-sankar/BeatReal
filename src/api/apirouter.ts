@@ -3,10 +3,11 @@ import { Router } from "../shared/router";
 import { ApiController } from "./apicontroller";
 
 //defines the routes for the api module and attaches them to the controller.
-export class ApiRouter extends Router{
-	public createRouter(): void {
-		this.router.get("/hello",ApiController.getHello);
-		this.router.post("/hello",ApiController.postHello);
-		//this.router.get("/private/hello",SecUtils.middleware,ApiController.getPrivateHello)
-	}
+export class ApiRouter extends Router {
+  public createRouter(): void {
+    this.router.get("/hello", ApiController.getHello);
+    this.router.get("/data", ApiController.getData);
+    this.router.post("/hello", ApiController.postHello);
+    //this.router.get("/private/hello",SecUtils.middleware,ApiController.getPrivateHello)
+  }
 }
