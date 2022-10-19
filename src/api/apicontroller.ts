@@ -7,8 +7,8 @@ export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
   static apiKey: string = Config.databaseConfig.key;
   static data: any = {
-    collection: "itemlist",
-    database: "exercise3",
+    collection: "User",
+    database: "BeatReal",
     dataSource: "Cluster0",
   };
   static config: AxiosRequestConfig = {
@@ -37,7 +37,7 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(
         Config.databaseConfig.dataSource,
-        "exercise3"
+        "BeatReal"
       );
 
       const result = await db.find("itemlist", { hello: "world" });

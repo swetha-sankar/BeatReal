@@ -51,7 +51,7 @@ export class SecController {
 		try {
 			const hash: string = await SecUtils.createHash(password);
 
-			const db = new MongoAtlasDB(Config.databaseConfig.dataSource,'exercise3');
+			const db = new MongoAtlasDB(Config.databaseConfig.dataSource,'BeatReal');
 			let result = await db.findOne("security", { username: userName });
 			if (result.data.document) {
 				res.send({ status: 'error', data: 'Username in use' });
@@ -82,7 +82,7 @@ export class SecController {
 			res.send({ status: 'error', data: 'invalid request' });
 			return;
 		}
-		const db = new MongoAtlasDB(Config.databaseConfig.dataSource,'exercise3');
+		const db = new MongoAtlasDB(Config.databaseConfig.dataSource,'BeatReal');
 		try {
 			const hash=await SecUtils.createHash(newPass);
 			const userRecord = {
