@@ -35,10 +35,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("itemlist", { hello: "world" });
       res.send({ status: "ok", result: result.data.documents });
@@ -57,5 +54,3 @@ export class ApiController {
       .catch((err) => res.send(err));
   }
 }
-
-//
