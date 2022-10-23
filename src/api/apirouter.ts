@@ -16,5 +16,6 @@ export class ApiRouter extends Router {
     this.router.get("/users/id/reels", ApiController.getUserReels);
     this.router.get("/users/id/currentReel", ApiController.getUserCurrReel);
     this.router.post("/insertUser", ApiController.postUser);
+    this.router.delete('/deleteUser', ApiController.deleteUser);
   }
 }

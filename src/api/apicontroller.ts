@@ -2,6 +2,7 @@ import express from "express";
 import { Config } from "../shared/config";
 import axios, { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
+import { Application } from "../shared/application";
 
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
@@ -176,6 +177,21 @@ export class ApiController {
       };
 
       const result = await db.insert('User', exampleUser);
+      res.send({ status: "ok", data: result.data});
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async deleteUser(req: express.Request, res: express.Response){
+    try {
+      const db = new MongoAtlasDB(
+        Config.databaseConfig.dataSource,
+        "BeatReal"
+      );
+
+      const result = await db.deleteOne('User', req.body._id);
       res.send({ status: "ok", data: result.data});
     } catch (e) {
       console.error(e);
