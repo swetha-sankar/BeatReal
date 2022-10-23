@@ -38,12 +38,15 @@ export class MongoAtlasDB {
 	//insert obj into colleciton
 	public async insert(collection: string, obj: any): Promise<any> {
 		const requestObject=this.getRequestObject(collection,'/action/insertOne',{document:obj});
-		
 		return axios(requestObject);
 	}
 	//update record in collection with _id=id and replace it with updateObj
 	public async update(collection: string, id: string, updateObj: any): Promise<any> {
 		const requestObject=this.getRequestObject(collection,'/action/replaceOne',{filter:{'_id': { "$oid":id}},replacement:updateObj});
+		return axios(requestObject);
+	}
+	public async deleteOne(collection: string, id: string): Promise<any> {
+		const requestObject=this.getRequestObject(collection,'/action/deleteOne',{filter:{'_id': { "$oid":id}}});
 		return axios(requestObject);
 	}
 }
