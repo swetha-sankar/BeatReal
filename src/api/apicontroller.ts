@@ -21,17 +21,6 @@ export class ApiController {
     },
     data: null,
   };
-
-  /*
-  //returns something.
-  static getHello(req: express.Request, res: express.Response): void {
-    ApiController.config.url = ApiController.baseURL + "/action/find";
-    ApiController.config.data = ApiController.data;
-    axios(ApiController.config)
-      .then((response) => res.send(JSON.stringify(response.data)))
-      .catch((error) => res.send(error));
-  }
-*/
 /*
   public static async getData(
     req: express.Request,
