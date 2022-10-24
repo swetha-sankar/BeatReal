@@ -184,4 +184,19 @@ export class ApiController {
       res.send({ status: "error", data: e });
     }
   }
+
+  public static async postReel(req: express.Request, res: express.Response){
+    try {
+      const db = new MongoAtlasDB(
+        Config.databaseConfig.dataSource,
+        "BeatReal"
+      );
+
+      const result = await db.deleteOne('User', req.body._id);
+      res.send({ status: "ok", data: result.data});
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
 }
