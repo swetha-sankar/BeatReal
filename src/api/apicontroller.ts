@@ -191,8 +191,8 @@ export class ApiController {
         Config.databaseConfig.dataSource,
         "BeatReal"
       );
-
-      const result = await db.deleteOne('User', req.body._id);
+      //const objectid = 
+      //const result = await db.update('User', req.body._id);
       res.send({ status: "ok", data: result.data});
     } catch (e) {
       console.error(e);
