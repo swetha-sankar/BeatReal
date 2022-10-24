@@ -21,7 +21,7 @@ export class ApiController {
     },
     data: null,
   };
-/*
+  /*
   public static async getData(
     req: express.Request,
     res: express.Response
@@ -43,10 +43,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -61,10 +58,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -79,10 +73,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -97,10 +88,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -115,10 +103,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -145,40 +130,51 @@ export class ApiController {
   ): Promise<void> {
     console.log("inside postUser");
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const exampleUser = {
         FirstName: "testing",
         LastName: "testing",
         PhoneNumber: "11111111",
         Spotify: 1,
-        Friends: [2,3],
+        Friends: [2, 3],
         Reels: [],
         Email: "testing@gmail.com",
         ProfilePic: null,
-        Bio: "example bio" 
+        Bio: "example bio",
       };
 
-      const result = await db.insert('User', exampleUser);
-      res.send({ status: "ok", data: result.data});
+      const result = await db.insert("User", exampleUser);
+      res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
-  public static async deleteUser(req: express.Request, res: express.Response){
+  public static async deleteUser(req: express.Request, res: express.Response) {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.deleteOne('User', req.body._id);
-      res.send({ status: "ok", data: result.data});
+      const result = await db.deleteOne("User", req.body._id);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async unlikeReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const unlike = [...req.body.likes]
+      unlike.filter(userId => userId == )
+
+      const updateObject = { ...req.body, likes: unlike };
+
+      const result = await db.update("Reel", req.body._id, updateObject);
+      res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
