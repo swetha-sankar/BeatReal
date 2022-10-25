@@ -133,7 +133,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const exampleUser = {
-        FirstName: "testing",
+        FirstName: "testing_2",
         LastName: "testing",
         PhoneNumber: "11111111",
         Spotify: 1,
@@ -169,6 +169,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       //const grabUser = await db.findOne('User', req.body._id);
+
       const reel = {
         PosterID: req.body._id,
         Date: "",
@@ -193,10 +194,30 @@ export class ApiController {
       //console.log(userReplacement);
       //const length: number = userReplacement.Reels.length;
       //userReplacement.Reels.splice(length-1, 0, reel);
-
       //const result = await db.update('User', req.body._id, user);
-
       //const result = await db.find('User', {});
+
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  // Will most definitely be changed as Reels will be embedded in users
+  // and we need to figure out how to access data from database rather than just using
+  // Postman to input JSON data.
+  public static async unlikeReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const unlike = [...req.body.likes];
+      unlike.filter((userId) => userId == req.body.userId);
+
+      const newObj = { ...req.body, likes: unlike };
+
+      const result = await db.update("Reel", req.body.ReelId, newObj);
+
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
