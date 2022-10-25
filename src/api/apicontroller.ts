@@ -191,8 +191,18 @@ export class ApiController {
         Config.databaseConfig.dataSource,
         "BeatReal"
       );
-      //const objectid = 
-      //const result = await db.update('User', req.body._id);
+      const grabUser = await db.findOne('User', req.body._id);
+      const reel = {
+        PosterID: req.body._id,
+        Date: "",
+        Time: "",
+        Likes: [],
+        Comments: []
+      }
+      const userReplacement = grabUser.data.documents;
+      const length: number = userReplacement.Reels.length;
+      userReplacement.Reels.splice(length-1, 0, reel);
+      const result = await db.update('User', req.body._id, userReplacement);
       res.send({ status: "ok", data: result.data});
     } catch (e) {
       console.error(e);
