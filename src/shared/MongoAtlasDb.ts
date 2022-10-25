@@ -63,6 +63,8 @@ export class MongoAtlasDB {
     );
     return axios(requestObject);
   }
+
+  //delete a user given an id
   public async deleteOne(collection: string, id: string): Promise<any> {
     const requestObject = this.getRequestObject(
       collection,
@@ -72,11 +74,15 @@ export class MongoAtlasDB {
     return axios(requestObject);
   }
 
-  //   public async findOneAndUpdate(collection: string, id: string): Promise<any> {
+  //   public async findOneAndUpdate(
+  //     collection: string,
+  //     ReelId: string,
+  //     UserId: string
+  //   ): Promise<any> {
   //     const requestObject = this.getRequestObject(
   //       collection,
   //       "/action/findOneAndUpdate",
-  //       { filter: { _id: { $oid: id } } }
+  //       { filter: { _id: { $oid: ReelId } }, set: {likes : [all - userID] } }
   //     );
   //   }
 }
