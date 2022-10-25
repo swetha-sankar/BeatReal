@@ -191,7 +191,7 @@ export class ApiController {
         Config.databaseConfig.dataSource,
         "BeatReal"
       );
-      const grabUser = await db.findOne('User', req.body._id);
+      //const grabUser = await db.findOne('User', req.body._id);
       const reel = {
         PosterID: req.body._id,
         Date: "",
@@ -199,10 +199,15 @@ export class ApiController {
         Likes: [],
         Comments: []
       }
-      const userReplacement = grabUser.data.documents;
-      const length: number = userReplacement.Reels.length;
-      userReplacement.Reels.splice(length-1, 0, reel);
-      const result = await db.update('User', req.body._id, userReplacement);
+      const user = {
+        Reels: [...req.body.Reels, reel]
+      }
+      //let userReplacement = JSON.parse(JSON.stringify(grabUser.data.documents));
+      //console.log(userReplacement);
+      //const length: number = userReplacement.Reels.length;
+      //userReplacement.Reels.splice(length-1, 0, reel);
+      const result = await db.update('User', req.body._id, user);
+      //const result = await db.find('User', {});
       res.send({ status: "ok", data: result.data});
     } catch (e) {
       console.error(e);
