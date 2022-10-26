@@ -5,7 +5,6 @@ import { ApiController } from "./apicontroller";
 //defines the routes for the api module and attaches them to the controller.
 export class ApiRouter extends Router {
   public createRouter(): void {
-    console.log("create router");
     this.router.get("/users", ApiController.getUsers);
     this.router.get("/users/id", ApiController.getUserId);
     this.router.get("/users/id/friendids", ApiController.getUserFriends);

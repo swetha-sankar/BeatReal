@@ -129,23 +129,21 @@ export class ApiController {
     req: express.Request,
     res: express.Response
   ): Promise<void> {
-    console.log("inside postUser");
+    const newUser = {
+      FirstName: req.body.FirstName,
+      LastName: req.body.LastName,
+      PhoneNumber: req.body.PhoneNumber,
+      Spotify: req.body.Spotify,
+      Friends: req.body.Friends,
+      Reels: req.body.Reels,
+      Email: req.body.Email,
+      ProfilePic: req.body.ProfilePic,
+      Bio: req.body.Bio 
+    };
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const exampleUser = {
-        FirstName: "testing_2",
-        LastName: "testing",
-        PhoneNumber: "11111111",
-        Spotify: 1,
-        Friends: [2, 3],
-        Reels: [],
-        Email: "testing@gmail.com",
-        ProfilePic: null,
-        Bio: "example bio",
-      };
-
-      const result = await db.insert("User", exampleUser);
+      const result = await db.insert("User", newUser);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
