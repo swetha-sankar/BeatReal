@@ -3,6 +3,7 @@ import { Config } from "../shared/config";
 import axios, { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
 import { Application } from "../shared/application";
+import { ObjectId } from "mongodb";
 
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
@@ -167,10 +168,10 @@ export class ApiController {
   public static async postReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-
-      //const grabUser = await db.findOne('User', req.body._id);
+      let oid = new ObjectId();
 
       const reel = {
+        _id: oid,
         PosterID: req.body._id,
         Date: "",
         Time: "",
@@ -178,25 +179,11 @@ export class ApiController {
         Comments: [],
       };
 
-      let result = await db.insert("Reel", reel);
-      console.log(result.data.insertedId);
-
-      result = await db.find("Reel", { "_id": {"$oid": result.data.insertedId} });
-      console.log(result.data);
-
       const user = {
-        Reels: [...req.body.Reels, result.data],
+        Reels: [...req.body.Reels, reel],
       };
 
-      result = await db.update("User", req.body._id, user);
-
-      //let userReplacement = JSON.parse(JSON.stringify(grabUser.data.documents));
-      //console.log(userReplacement);
-      //const length: number = userReplacement.Reels.length;
-      //userReplacement.Reels.splice(length-1, 0, reel);
-      //const result = await db.update('User', req.body._id, user);
-      //const result = await db.find('User', {});
-
+      let result = await db.update("User", req.body._id, user);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
