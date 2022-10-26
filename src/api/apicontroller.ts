@@ -2,6 +2,7 @@ import express from "express";
 import { Config } from "../shared/config";
 import axios, { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
+import { Application } from "../shared/application";
 
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
@@ -20,27 +21,13 @@ export class ApiController {
     },
     data: null,
   };
-
   /*
-  //returns something.
-  static getHello(req: express.Request, res: express.Response): void {
-    ApiController.config.url = ApiController.baseURL + "/action/find";
-    ApiController.config.data = ApiController.data;
-    axios(ApiController.config)
-      .then((response) => res.send(JSON.stringify(response.data)))
-      .catch((error) => res.send(error));
-  }
-*/
-/*
   public static async getData(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("itemlist", { hello: "world" });
       res.send({ status: "ok", result: result.data.documents });
@@ -56,10 +43,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -74,10 +58,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -92,10 +73,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -110,10 +88,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -128,10 +103,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("User", {});
       res.send({ status: "ok", result: result.data.documents });
@@ -168,13 +140,83 @@ export class ApiController {
       Bio: req.body.Bio 
     };
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.insert('User', newUser);
-      res.send({ status: "ok", data: result.data});
+      const result = await db.insert("User", newUser);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async deleteUser(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const result = await db.deleteOne("User", req.body._id);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async postReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      //const grabUser = await db.findOne('User', req.body._id);
+
+      const reel = {
+        PosterID: req.body._id,
+        Date: "",
+        Time: "",
+        Likes: [],
+        Comments: [],
+      };
+
+      let result = await db.insert("Reel", reel);
+      console.log(result.data.insertedId);
+
+      result = await db.find("Reel", { "_id": {"$oid": result.data.insertedId} });
+      console.log(result.data);
+
+      const user = {
+        Reels: [...req.body.Reels, result.data],
+      };
+
+      result = await db.update("User", req.body._id, user);
+
+      //let userReplacement = JSON.parse(JSON.stringify(grabUser.data.documents));
+      //console.log(userReplacement);
+      //const length: number = userReplacement.Reels.length;
+      //userReplacement.Reels.splice(length-1, 0, reel);
+      //const result = await db.update('User', req.body._id, user);
+      //const result = await db.find('User', {});
+
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  // Will most definitely be changed as Reels will be embedded in users
+  // and we need to figure out how to access data from database rather than just using
+  // Postman to input JSON data.
+  public static async unlikeReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const unlike = [...req.body.likes];
+      unlike.filter((userId) => userId == req.body.userId);
+
+      const newObj = { ...req.body, likes: unlike };
+
+      const result = await db.update("Reel", req.body.ReelId, newObj);
+
+      res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
