@@ -3,6 +3,7 @@ import { Config } from "../shared/config";
 import axios, { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
 import { Application } from "../shared/application";
+import { ObjectId } from "mongodb";
 
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
@@ -27,10 +28,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.find("itemlist", { hello: "world" });
       res.send({ status: "ok", result: result.data.documents });
@@ -172,23 +170,21 @@ export class ApiController {
     req: express.Request,
     res: express.Response
   ): Promise<void> {
-    console.log("inside postUser");
+    const newUser = {
+      FirstName: req.body.FirstName,
+      LastName: req.body.LastName,
+      PhoneNumber: req.body.PhoneNumber,
+      Spotify: req.body.Spotify,
+      Friends: req.body.Friends,
+      Reels: req.body.Reels,
+      Email: req.body.Email,
+      ProfilePic: req.body.ProfilePic,
+      Bio: req.body.Bio 
+    };
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const exampleUser = {
-        FirstName: "testing",
-        LastName: "testing",
-        PhoneNumber: "11111111",
-        Spotify: 1,
-        Friends: [2, 3],
-        Reels: [],
-        Email: "testing@gmail.com",
-        ProfilePic: null,
-        Bio: "example bio",
-      };
-
-      const result = await db.insert("User", exampleUser);
+      const result = await db.insert("User", newUser);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -201,6 +197,52 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.deleteOne("User", req.body._id);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async postReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      let oid = new ObjectId();
+
+      const reel = {
+        _id: oid,
+        PosterID: req.body._id,
+        Date: "",
+        Time: "",
+        Likes: [],
+        Comments: [],
+      };
+
+      const user = {
+        Reels: [...req.body.Reels, reel],
+      };
+
+      let result = await db.update("User", req.body._id, user);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+  
+  // Will most definitely be changed as Reels will be embedded in users
+  // and we need to figure out how to access data from database rather than just using
+  // Postman to input JSON data.
+  public static async unlikeReel(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const unlike = [...req.body.likes];
+      unlike.filter((userId) => userId == req.body.userId);
+
+      const newObj = { ...req.body, likes: unlike };
+
+      const result = await db.update("Reel", req.body.ReelId, newObj);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
