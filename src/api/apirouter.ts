@@ -8,9 +8,10 @@ export class ApiRouter extends Router {
     console.log("create router");
     this.router.get("/users", ApiController.getUsers);
     this.router.get("/users/:id", ApiController.getUserId);
-    this.router.get("/users/id/friendids", ApiController.getUserFriends);
-    this.router.get("/users/id/reels", ApiController.getUserReels);
-    this.router.get("/users/id/currentReel", ApiController.getUserCurrReel);
+    this.router.get("/users/:id/friendids", ApiController.getUserFriends);
+    this.router.get("/users/:id/reels", ApiController.getUserReels);
+    this.router.get("/users/:id/friendReels", ApiController.getUserFriendReels);
+    this.router.get("/users/:id/currentReel", ApiController.getUserCurrReel);
     this.router.post("/insertUser", ApiController.postUser);
     this.router.delete("/deleteUser", ApiController.deleteUser);
   }
