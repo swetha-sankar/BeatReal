@@ -249,4 +249,27 @@ export class ApiController {
       res.send({ status: "error", data: e });
     }
   }
+
+  public static async deleteReel(req: express.Request, res: express.Response){
+    try{
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      let result = await db.deleteOne('User', req.body.reelId);
+      /* let result = await db.findOne('User', {_id: {$oid: req.body.userId}});
+      
+      let updatedReels = [...result.data.document.Reels];
+      updatedReels = updatedReels.filter((element: any) => element._id !== req.body.reelId);
+      let user = {
+        ...result.data.document
+      }
+      user.Reels = updatedReels;
+      console.log(user);
+      /* user.Reels = updatedReels; */
+      //result = await db.update('User', req.body.userId, user);
+      //const reel = result.data.document.Reels.find((element: any) => element._id === req.body.reelId); */
+      res.send({status: "ok", data: result.data});
+    } catch (e){
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
 }
