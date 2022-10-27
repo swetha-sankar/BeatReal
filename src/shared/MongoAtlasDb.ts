@@ -73,16 +73,4 @@ export class MongoAtlasDB {
     );
     return axios(requestObject);
   }
-
-  //   public async findOneAndUpdate(
-  //     collection: string,
-  //     ReelId: string,
-  //     UserId: string
-  //   ): Promise<any> {
-  //     const requestObject = this.getRequestObject(
-  //       collection,
-  //       "/action/findOneAndUpdate",
-  //       { filter: { _id: { $oid: ReelId } }, set: {likes : [all - userID] } }
-  //     );
-  //   }
 }
