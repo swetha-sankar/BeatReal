@@ -60,9 +60,8 @@ export class ApiController {
   ): Promise<void> {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-
-      const result = await db.find("User", {});
-      res.send({ status: "ok", result: result.data.documents });
+      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
+      res.send({ status: "ok", result: result.data.document });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
@@ -76,7 +75,15 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.find("User", {});
+      const user = await db.findOne("User", { _id: { $oid: req.params.id } });
+      const mappedUserIds = user.data.document.Friends.map((userId: String) => {
+        return {
+          $oid: userId,
+        };
+      });
+      const result = await db.find("User", {
+        _id: { $in: mappedUserIds },
+      });
       res.send({ status: "ok", result: result.data.documents });
     } catch (e) {
       console.error(e);
@@ -91,8 +98,37 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.find("User", {});
-      res.send({ status: "ok", result: result.data.documents });
+      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
+      res.send({ status: "ok", result: result.data.document.Reels });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async getUserFriendReels(
+    req: express.Request,
+    res: express.Response
+  ): Promise<void> {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const user = await db.findOne("User", { _id: { $oid: req.params.id } });
+      const mappedUserIds = user.data.document.Friends.map((userId: String) => {
+        return {
+          $oid: userId,
+        };
+      });
+      const result = await db.find("User", {
+        _id: { $in: mappedUserIds },
+      });
+
+      // REPLACE WITH TYPE INTERFACE LATER
+      const friendReels = result.data.documents
+        .map((user: any) => user.Reels)
+        .flat();
+
+      res.send({ status: "ok", result: friendReels });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
@@ -106,8 +142,13 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.find("User", {});
-      res.send({ status: "ok", result: result.data.documents });
+      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
+
+      res.send({
+        status: "ok",
+        result:
+          result.data.document.Reels[result.data.document.Reels.length - 1],
+      });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
@@ -188,7 +229,7 @@ export class ApiController {
       res.send({ status: "error", data: e });
     }
   }
-
+  
   // Will most definitely be changed as Reels will be embedded in users
   // and we need to figure out how to access data from database rather than just using
   // Postman to input JSON data.
@@ -202,7 +243,6 @@ export class ApiController {
       const newObj = { ...req.body, likes: unlike };
 
       const result = await db.update("Reel", req.body.ReelId, newObj);
-
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
