@@ -12,6 +12,7 @@ export class ApiRouter extends Router {
     this.router.get("/users/:id/friendReels", ApiController.getUserFriendReels);
     this.router.get("/users/:id/currentReel", ApiController.getUserCurrReel);
     this.router.post("/insertUser", ApiController.postUser);
+    this.router.put("/editUser/:id", ApiController.putUser);
     this.router.delete("/deleteUser", ApiController.deleteUser);
     this.router.patch("/unlikeReel", ApiController.unlikeReel);
     this.router.patch("/insertReel", ApiController.postReel);

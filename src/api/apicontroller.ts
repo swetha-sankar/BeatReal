@@ -22,22 +22,6 @@ export class ApiController {
     },
     data: null,
   };
-  /*
-  public static async getData(
-    req: express.Request,
-    res: express.Response
-  ): Promise<void> {
-    try {
-      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-
-      const result = await db.find("itemlist", { hello: "world" });
-      res.send({ status: "ok", result: result.data.documents });
-    } catch (e) {
-      console.error(e);
-      res.send({ status: "error", data: e });
-    }
-  }
-  */
 
   public static async getUsers(
     req: express.Request,
@@ -155,17 +139,6 @@ export class ApiController {
     }
   }
 
-  /*
-  //returns whatever you post to it.  You can use the contents of req.body to extract information being sent to the server
-  static postHello(req: express.Request, res: express.Response): void {
-    ApiController.config.url = ApiController.baseURL + "/action/insertOne";
-    ApiController.config.data = { ...ApiController.data, document: req.body };
-    axios(ApiController.config)
-      .then((result) => res.send(result))
-      .catch((err) => res.send(err));
-  }
-  */
-
   public static async postUser(
     req: express.Request,
     res: express.Response
@@ -185,18 +158,6 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.insert("User", newUser);
-      res.send({ status: "ok", data: result.data });
-    } catch (e) {
-      console.error(e);
-      res.send({ status: "error", data: e });
-    }
-  }
-
-  public static async deleteUser(req: express.Request, res: express.Response) {
-    try {
-      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-
-      const result = await db.deleteOne("User", req.body._id);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -229,6 +190,53 @@ export class ApiController {
       res.send({ status: "error", data: e });
     }
   }
+
+  public static async putUser(
+    req: express.Request,
+    res: express.Response
+  ): Promise<void> {
+    const newFields = {
+      FirstName: req.body.FirstName,
+      LastName: req.body.LastName,
+      PhoneNumber: req.body.PhoneNumber,
+      Spotify: req.body.Spotify,
+      Friends: req.body.Friends,
+      Reels: req.body.Reels,
+      Email: req.body.Email,
+      ProfilePic: req.body.ProfilePic,
+      Bio: req.body.Bio 
+    };
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      var putResult;
+
+      //if can't find it in the db insert it, otherwise update it
+      try {
+        const findResult=await db.findOne("User", { _id: { $oid: req.params.id } });
+        putResult = db.update("User", req.params.id, newFields);
+      } catch (e) {
+        putResult = await db.insert("User", newFields); //this.postReel(req,res);
+      }
+
+      res.send({ status: "ok", data: putResult.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
+  public static async deleteUser(req: express.Request, res: express.Response) {
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const result = await db.deleteOne("User", req.body._id);
+      res.send({ status: "ok", data: result.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+  }
+
   
   // Will most definitely be changed as Reels will be embedded in users
   // and we need to figure out how to access data from database rather than just using
