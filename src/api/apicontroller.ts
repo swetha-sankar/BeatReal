@@ -225,6 +225,27 @@ export class ApiController {
     }
   }
 
+  public static async putLike(
+    req: express.Request,
+    res: express.Response
+  ): Promise<void> {
+
+    //not done yet, going to look at ethan's push of silbers solution to unlike reel
+    /* 
+    try {
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      const findReel=await db.findOne("User", { "Reels.reelID" : req.params.reelid});
+        
+      const putResult = db.update("User", req.params.reelid, Reels[req.params.likerid]);
+
+      res.send({ status: "ok", data: putResult.data });
+    } catch (e) {
+      console.error(e);
+      res.send({ status: "error", data: e });
+    }
+    */
+  }
+
   public static async deleteUser(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
