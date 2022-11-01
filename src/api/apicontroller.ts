@@ -168,6 +168,15 @@ export class ApiController {
   public static async postReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+
+      const reel = {
+        PosterID: req.body.PosterID,
+        Date: req.body.Date,
+        Time: req.body.Time,
+        Likes: req.body.Likes,
+        Comments: req.body.Comments
+      }
+      /*
       let oid = new ObjectId();
 
       const reel = {
@@ -183,7 +192,12 @@ export class ApiController {
         Reels: [...req.body.Reels, reel],
       };
 
-      let result = await db.update("User", req.body._id, user);
+      */
+
+      const userResult = await db.findOne("User", { _id: { $oid: req.body.PosterID } });
+      const appendedReel = userResult.data.document.Reels.concat(reel);
+      
+      let result = await db.update("User", req.body.PosterID, {"Reels" : appendedReel});
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
