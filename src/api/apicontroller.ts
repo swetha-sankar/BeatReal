@@ -176,7 +176,7 @@ export class ApiController {
         Likes: req.body.Likes,
         Comments: req.body.Comments
       }
-      /*
+      /* //Ethan's hard coded reel
       let oid = new ObjectId();
 
       const reel = {
@@ -187,17 +187,25 @@ export class ApiController {
         Likes: [],
         Comments: [],
       };
-
-      const user = {
-        Reels: [...req.body.Reels, reel],
-      };
-
       */
+
+      //I can't figure out how to only update one field in user, so am updating the whole user for now
 
       const userResult = await db.findOne("User", { _id: { $oid: req.body.PosterID } });
       const appendedReel = userResult.data.document.Reels.concat(reel);
+      const userUpdated = {
+        "FirstName": userResult.data.document.FirstName,
+        "LastName":userResult.data.document.LastName,
+        "PhoneNumber":userResult.data.document.PhoneNumber,
+        "Spotify":userResult.data.document.Spotify,
+        "Friends":userResult.data.document.Friends,
+        "Reels": appendedReel,
+        "Email": userResult.data.document.Email,
+        "ProfilePic":userResult.data.document.ProfilePic,
+        "Bio":userResult.data.document.Bio
+      };
       
-      let result = await db.update("User", req.body.PosterID, {"Reels" : appendedReel});
+      let result = await db.update("User", req.body.PosterID, userUpdated);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
