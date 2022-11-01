@@ -169,7 +169,9 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
+      let reelOID = new ObjectId();
       const reel = {
+        _id: reelOID,
         PosterID: req.body.PosterID,
         Date: req.body.Date,
         Time: req.body.Time,
@@ -251,21 +253,43 @@ export class ApiController {
     req: express.Request,
     res: express.Response
   ): Promise<void> {
-
-    //not done yet, going to look at ethan's push of silbers solution to unlike reel
-    /* 
+    
+    /*
+    //I need to type the reel objects inside Reels for the .find to work
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      const findReel=await db.findOne("User", { "Reels.reelID" : req.params.reelid});
-        
-      const putResult = db.update("User", req.params.reelid, Reels[req.params.likerid]);
+      const userResult = await db.findOne("User", { _id: { $oid: req.params.posterid } });
+      const reel = userResult.data.document.Reels.find((reel) => reel._id==req.params.reelid)
+      const appendedLikes = reel.likes.concat(req.params.likerid);  
 
+      const reelUpdated = {
+        "PosterID": reel.PosterID,
+        "Date":reel.Date,
+        "Time":reel.Time,
+        "Likes":appendedLikes,
+        "Comments":reel.Comments
+      };
+
+      const userUpdated = {
+        "FirstName": userResult.data.document.FirstName,
+        "LastName":userResult.data.document.LastName,
+        "PhoneNumber":userResult.data.document.PhoneNumber,
+        "Spotify":userResult.data.document.Spotify,
+        "Friends":userResult.data.document.Friends,
+        "Reels": reelUpdated,
+        "Email": userResult.data.document.Email,
+        "ProfilePic":userResult.data.document.ProfilePic,
+        "Bio":userResult.data.document.Bio
+      };
+
+      const putResult = await db.update("User", req.params.posterid, userUpdated);
       res.send({ status: "ok", data: putResult.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
     */
+    
   }
 
   public static async deleteUser(req: express.Request, res: express.Response) {
