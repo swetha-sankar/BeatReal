@@ -165,36 +165,26 @@ export class ApiController {
     }
   }
 
-  public static async postReel(req: express.Request, res: express.Response) {
+  public static async patchReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       let reelOID = new ObjectId();
+      let datetime = new Date();
+
       const reel = {
         _id: reelOID,
         PosterID: req.body.PosterID,
-        Date: req.body.Date,
-        Time: req.body.Time,
-        Likes: req.body.Likes,
-        Comments: req.body.Comments
+        Song: req.body.Song,
+        Date: datetime.toLocaleDateString(),
+        Time: datetime.toLocaleTimeString(),
+        Likes: [], //likes and comments start at 0
+        Comments: [] 
       }
-      /* //Ethan's hard coded reel
-      let oid = new ObjectId();
-
-      const reel = {
-        _id: oid,
-        PosterID: req.body._id,
-        Date: "",
-        Time: "",
-        Likes: [],
-        Comments: [],
-      };
-      */
-
-      //I can't figure out how to only update one field in user, so am updating the whole user for now
 
       const userResult = await db.findOne("User", { _id: { $oid: req.body.PosterID } });
       const appendedReel = userResult.data.document.Reels.concat(reel);
+      
       const userUpdated = {
         "FirstName": userResult.data.document.FirstName,
         "LastName":userResult.data.document.LastName,
