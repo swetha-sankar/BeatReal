@@ -244,12 +244,10 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     
-    /*
-    //I need to type the reel objects inside Reels for the .find to work
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const userResult = await db.findOne("User", { _id: { $oid: req.params.posterid } });
-      const reel = userResult.data.document.Reels.find((reel) => reel._id==req.params.reelid)
+      const reel = userResult.data.document.Reels.find((reel: any) => reel._id==req.params.reelid)
       const appendedLikes = reel.likes.concat(req.params.likerid);  
 
       const reelUpdated = {
@@ -278,8 +276,6 @@ export class ApiController {
       console.error(e);
       res.send({ status: "error", data: e });
     }
-    */
-    
   }
 
   public static async deleteUser(req: express.Request, res: express.Response) {
