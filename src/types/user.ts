@@ -1,4 +1,4 @@
-import { Reel } from "reel";
+import { Reel } from "./reel";
 
 export interface User {
   id: string;
