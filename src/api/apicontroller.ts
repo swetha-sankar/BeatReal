@@ -309,7 +309,7 @@ export class ApiController {
       let reelsList = result.data.Reels;
       const Reel = reelsList.filter((element: any) => element._id === req.body.reelId);
       let commentsList = Reel.Comments;
-      commentsList = commentsList.filter((element: any) => element.textContent !== req.body.textContent);
+      commentsList = commentsList.filter((element: any) => element.textContent !== req.body.textContent && element._id !== req.body.commenterId);
 
       reelsList ={
         Comments: commentsList
