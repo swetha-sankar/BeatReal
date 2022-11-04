@@ -1,5 +1,5 @@
 export interface BRComment {
     id: string,
-    posterId: string,
+    posterId: string,  
     textContent: string
   }
