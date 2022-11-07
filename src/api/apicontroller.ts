@@ -1,10 +1,9 @@
 import express from "express";
 import { Config } from "../shared/config";
-import axios, { AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
-import { Application } from "../shared/application";
 import { ObjectId } from "mongodb";
-
+import { User } from "../types/types";
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
   static apiKey: string = Config.databaseConfig.key;
