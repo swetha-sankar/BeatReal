@@ -382,6 +382,29 @@ export class ApiController {
     }
   }
 
+  public static async deleteComment(req: express.Request, res: express.Response){
+    try{
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      let result = await db.findOne('User', {_id: {$oid: req.body.userId}});
+      
+      let reelsList = result.data.Reels;
+      const Reel = reelsList.filter((element: any) => element._id === req.body.reelId);
+      let commentsList = Reel.Comments;
+      commentsList = commentsList.filter((element: any) => element.textContent !== req.body.textContent && element._id !== req.body.commenterId);
+
+      reelsList ={
+        Comments: commentsList
+      }
+      const user ={
+        Reels: reelsList
+      }
+      result = await db.update('User', req.body.userId, user);
+
+      res.send({status: "ok", data: result.data});
+    } catch (e){
+    }
+  }
+  
   /**
    * @param req: { posterId: string, postId: string, commenterId: string, textContent: string}
    * @param res: Nothing
