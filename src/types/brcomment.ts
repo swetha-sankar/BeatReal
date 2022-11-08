@@ -1,5 +1,7 @@
+import { ObjectId } from "mongodb";
+
 export interface BRComment {
-    id: string,
-    posterId: string,
-    textContent: string
-  }
+  _id: ObjectId;
+  commenterId: string;
+  textContent: string;
+}

@@ -3,7 +3,9 @@ import { Config } from "../shared/config";
 import { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
 import { ObjectId } from "mongodb";
-import { User } from "../types/types";
+import { Reel, User } from "../types/types";
+import { BRComment } from "../types/brcomment";
+
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
   static apiKey: string = Config.databaseConfig.key;
@@ -22,35 +24,48 @@ export class ApiController {
     data: null,
   };
 
+  /**
+   * @param req : GET REQUEST, NO BODY
+   * @param res : USER[]
+   */
   public static async getUsers(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-
-      const result = await db.find("User", {});
-      res.send({ status: "ok", result: result.data.documents });
+      const result: User[] = (await db.find("User", {})).data.documents;
+      res.send({ status: "ok", result: result });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
+  /**
+   * @param req : get request, doesn't have a body, id is stored in uri
+   * @param res : User
+   */
   public static async getUserId(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
-      res.send({ status: "ok", result: result.data.document });
+      const result: User = (
+        await db.findOne("User", { _id: { $oid: req.params.id } })
+      ).data.document;
+      res.send({ status: "ok", result: result });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
+  /**
+   * @param req : get request, doesn't have a body, id is stored in uri
+   * @param res : User[] - their friends
+   */
   public static async getUserFriends(
     req: express.Request,
     res: express.Response
@@ -58,22 +73,31 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const user = await db.findOne("User", { _id: { $oid: req.params.id } });
-      const mappedUserIds = user.data.document.Friends.map((userId: String) => {
+      const user: User = (
+        await db.findOne("User", { _id: { $oid: req.params.id } })
+      ).data.document;
+      const mappedUserIds = user.friendIds.map((userId: String) => {
         return {
           $oid: userId,
         };
       });
-      const result = await db.find("User", {
-        _id: { $in: mappedUserIds },
-      });
-      res.send({ status: "ok", result: result.data.documents });
+      const result: User[] = (
+        await db.find("User", {
+          _id: { $in: mappedUserIds },
+        })
+      ).data.documents;
+      res.send({ status: "ok", result: result });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
+  /**
+   * Returns all reels posted by user
+   * @param req - Get request, no body.
+   * @param res - Reel[]
+   */
   public static async getUserReels(
     req: express.Request,
     res: express.Response
@@ -81,14 +105,21 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
-      res.send({ status: "ok", result: result.data.document.Reels });
+      const user: User = (
+        await db.findOne("User", { _id: { $oid: req.params.id } })
+      ).data.document;
+      res.send({ status: "ok", result: user.reels });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
+  /**
+   *
+   * @param req get request, no body
+   * @param res - Reel[]
+   */
   public static async getUserFriendReels(
     req: express.Request,
     res: express.Response
@@ -96,20 +127,21 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const user = await db.findOne("User", { _id: { $oid: req.params.id } });
-      const mappedUserIds = user.data.document.Friends.map((userId: String) => {
+      const user: User = (
+        await db.findOne("User", { _id: { $oid: req.params.id } })
+      ).data.document;
+      const mappedUserIds = user.friendIds.map((userId: String) => {
         return {
           $oid: userId,
         };
       });
-      const result = await db.find("User", {
-        _id: { $in: mappedUserIds },
-      });
+      const friends: User[] = (
+        await db.find("User", {
+          _id: { $in: mappedUserIds },
+        })
+      ).data.documents;
 
-      // REPLACE WITH TYPE INTERFACE LATER
-      const friendReels = result.data.documents
-        .map((user: any) => user.Reels)
-        .flat();
+      const friendReels: Reel[] = friends.map((user: any) => user.Reels).flat();
 
       res.send({ status: "ok", result: friendReels });
     } catch (e) {
@@ -118,6 +150,11 @@ export class ApiController {
     }
   }
 
+  /**
+   *
+   * @param req
+   * @param res - Reel
+   */
   public static async getUserCurrReel(
     req: express.Request,
     res: express.Response
@@ -125,12 +162,13 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.findOne("User", { _id: { $oid: req.params.id } });
+      const user: User = (
+        await db.findOne("User", { _id: { $oid: req.params.id } })
+      ).data.document;
 
       res.send({
         status: "ok",
-        result:
-          result.data.document.Reels[result.data.document.Reels.length - 1],
+        result: user.reels[user.reels.length - 1],
       });
     } catch (e) {
       console.error(e);
@@ -345,40 +383,39 @@ export class ApiController {
   }
 
   /**
-   * {userid: GUID, textContent: nvarchar}
-   * @param req
-   * @param res
+   * @param req: { posterId: string, postId: string, commenterId: string, textContent: string}
+   * @param res: Nothing
    */
   public static async commentReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const userResult = await db.findOne("User", {
-        _id: { $oid: req.body.PosterID },
-      });
-      const reelsWithComment = userResult.data.document.Reels.map(
-        (reel: any) => {
-          if (req.body.ReelID == reel._id) {
-            const newComments = [
-              ...reel.comments,
-              { userid: req.body.UserID, textContent: req.body.Comment },
-            ];
-            return { ...reel, comments: newComments };
-          }
-          return reel;
-        }
-      );
+      const user: User = (
+        await db.findOne("User", {
+          _id: { $oid: req.body.posterId },
+        })
+      ).data.document;
 
-      const userUpdated = {
-        FirstName: userResult.data.document.FirstName,
-        LastName: userResult.data.document.LastName,
-        PhoneNumber: userResult.data.document.PhoneNumber,
-        Spotify: userResult.data.document.Spotify,
-        Friends: userResult.data.document.Friends,
-        Reels: reelsWithComment,
-        Email: userResult.data.document.Email,
-        ProfilePic: userResult.data.document.ProfilePic,
-        Bio: userResult.data.document.Bio,
+      let commentOID = new ObjectId();
+
+      const reelsWithComment: Reel[] = user.reels.map((reel: Reel) => {
+        if (req.body.postId == reel.id) {
+          const newComments = [
+            ...reel.comments,
+            {
+              _id: commentOID,
+              commenterId: req.body.commenterId as string,
+              textContent: req.body.textContent as string,
+            } as BRComment,
+          ];
+          return { ...reel, comments: newComments };
+        }
+        return reel;
+      });
+
+      const userUpdated: User = {
+        ...user,
+        reels: reelsWithComment,
       };
 
       let result = await db.update("User", req.body.UserID, userUpdated);
