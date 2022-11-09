@@ -176,20 +176,36 @@ export class ApiController {
     }
   }
 
+  /**
+   * 
+   * @param req -  POST request, JSON body
+   * {
+    firstName: string,
+    lastName: string,
+    phoneNumber: string,
+    spotifyId: string,
+    friendIds: string[],
+    reels: Reel[],
+    email: string,
+    profilePic: string | null,
+    bio: string
+    }
+   * @param res - User
+   */
   public static async postUser(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     const newUser = {
-      FirstName: req.body.FirstName,
-      LastName: req.body.LastName,
-      PhoneNumber: req.body.PhoneNumber,
-      Spotify: req.body.Spotify,
-      Friends: req.body.Friends,
-      Reels: req.body.Reels,
-      Email: req.body.Email,
-      ProfilePic: req.body.ProfilePic,
-      Bio: req.body.Bio,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      phoneNumber: req.body.phoneNumber,
+      spotifyId: req.body.spotifyId,
+      friendIds: req.body.friendIds,
+      reels: req.body.reels,
+      email: req.body.email,
+      profilePic: req.body.profilePic,
+      bio: req.body.bio,
     };
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
@@ -202,6 +218,15 @@ export class ApiController {
     }
   }
 
+  /**
+   * 
+   * @param req - PATCH request, JSON body
+   * {
+   * posterId: string,
+   * songId: string
+   * }
+   * @param res - User with reels updated
+   */
   public static async patchReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
@@ -211,12 +236,12 @@ export class ApiController {
 
       const reel = {
         _id: reelOID,
-        PosterID: req.body.PosterID,
-        Song: req.body.Song,
-        Date: datetime.toLocaleDateString(),
-        Time: datetime.toLocaleTimeString(),
-        Likes: [], //likes and comments start at 0
-        Comments: [],
+        posterId: req.body.posterId,
+        songId: req.body.songId,
+        date: datetime.toLocaleDateString(),
+        time: datetime.toLocaleTimeString(),
+        likes: [], //likes and comments start at 0
+        comments: [],
       };
 
       const userResult = await db.findOne("User", {
@@ -225,15 +250,15 @@ export class ApiController {
       const appendedReel = userResult.data.document.Reels.concat(reel);
 
       const userUpdated = {
-        FirstName: userResult.data.document.FirstName,
-        LastName: userResult.data.document.LastName,
-        PhoneNumber: userResult.data.document.PhoneNumber,
-        Spotify: userResult.data.document.Spotify,
-        Friends: userResult.data.document.Friends,
-        Reels: appendedReel,
-        Email: userResult.data.document.Email,
-        ProfilePic: userResult.data.document.ProfilePic,
-        Bio: userResult.data.document.Bio,
+        firstName: userResult.data.document.firstName,
+        lastName: userResult.data.document.lastName,
+        phoneNumber: userResult.data.document.phoneNumber,
+        spotifyId: userResult.data.document.spotifyId,
+        friendIds: userResult.data.document.friendIds,
+        reels: appendedReel,
+        email: userResult.data.document.email,
+        profilePic: userResult.data.document.profilePic,
+        bio: userResult.data.document.bio,
       };
 
       let result = await db.update("User", req.body.PosterID, userUpdated);
@@ -244,20 +269,36 @@ export class ApiController {
     }
   }
 
+  /**
+   * 
+   * @param req - id in URL and PUT request, JSON body
+   * {
+    firstName: string,
+    lastName: string,
+    phoneNumber: string,
+    spotifyId: string,
+    friendIds: string[],
+    reels: Reel[],
+    email: string,
+    profilePic: string | null,
+    bio: string
+    }
+   * @param res - User - new or updated
+   */
   public static async putUser(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     const newFields = {
-      FirstName: req.body.FirstName,
-      LastName: req.body.LastName,
-      PhoneNumber: req.body.PhoneNumber,
-      Spotify: req.body.Spotify,
-      Friends: req.body.Friends,
-      Reels: req.body.Reels,
-      Email: req.body.Email,
-      ProfilePic: req.body.ProfilePic,
-      Bio: req.body.Bio,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      phoneNumber: req.body.phoneNumber,
+      spotifyId: req.body.spotifyId,
+      friendIds: req.body.friendIds,
+      reels: req.body.reels,
+      email: req.body.email,
+      profilePic: req.body.profilePic,
+      bio: req.body.bio,
     };
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
@@ -280,6 +321,11 @@ export class ApiController {
     }
   }
 
+  /**
+   * 
+   * @param req - :posterId/:reelId/:likerId in URL and PUT request, no body
+   * @param res - User with reel likes updated
+   */
   public static async putLike(
     req: express.Request,
     res: express.Response
@@ -287,36 +333,37 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const userResult = await db.findOne("User", {
-        _id: { $oid: req.params.posterid },
+        _id: { $oid: req.params.posterId },
       });
       const reel = userResult.data.document.Reels.find(
-        (reel: any) => reel._id == req.params.reelid
+        (reel: any) => reel._id == req.params.reelId
       );
-      const appendedLikes = reel.likes.concat(req.params.likerid);
+      const appendedLikes = reel.likes.concat(req.params.likerId);
 
       const reelUpdated = {
-        PosterID: reel.PosterID,
-        Date: reel.Date,
-        Time: reel.Time,
-        Likes: appendedLikes,
-        Comments: reel.Comments,
+        posterId: reel.posterId,
+        songId: reel.songId,
+        date: reel.date,
+        time: reel.time,
+        likes: appendedLikes,
+        comments: reel.comments,
       };
 
       const userUpdated = {
-        FirstName: userResult.data.document.FirstName,
-        LastName: userResult.data.document.LastName,
-        PhoneNumber: userResult.data.document.PhoneNumber,
-        Spotify: userResult.data.document.Spotify,
-        Friends: userResult.data.document.Friends,
-        Reels: reelUpdated,
-        Email: userResult.data.document.Email,
-        ProfilePic: userResult.data.document.ProfilePic,
-        Bio: userResult.data.document.Bio,
+        firstName: userResult.data.document.firstName,
+        lastName: userResult.data.document.lastName,
+        phoneNumber: userResult.data.document.phoneNumber,
+        spotifyId: userResult.data.document.spotifyId,
+        friendIds: userResult.data.document.friendIds,
+        reels: reelUpdated,
+        email: userResult.data.document.email,
+        profilePic: userResult.data.document.profilePic,
+        bio: userResult.data.document.bio,
       };
 
       const putResult = await db.update(
         "User",
-        req.params.posterid,
+        req.params.posterId,
         userUpdated
       );
       res.send({ status: "ok", data: putResult.data });

@@ -14,7 +14,7 @@ export class ApiRouter extends Router {
     this.router.post("/insertUser", ApiController.postUser);
     this.router.put("/editUser/:id", ApiController.putUser);
     this.router.put(
-      "/likeReel/:posterid/:reelid/:likerid",
+      "/likeReel/:posterId/:reelId/:likerId",
       ApiController.putLike
     );
     this.router.delete("/deleteUser", ApiController.deleteUser);
