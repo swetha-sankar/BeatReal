@@ -245,9 +245,9 @@ export class ApiController {
 			};
 
 			const userResult = await db.findOne("User", {
-				_id: { $oid: req.body.PosterID },
+				_id: { $oid: req.body.posterId },
 			});
-			const appendedReel = userResult.data.document.Reels.concat(reel);
+			const appendedReel = userResult.data.document.reels.concat(reel);
 
 			const userUpdated = {
 				firstName: userResult.data.document.firstName,
@@ -261,7 +261,7 @@ export class ApiController {
 				bio: userResult.data.document.bio,
 			};
 
-			let result = await db.update("User", req.body.PosterID, userUpdated);
+			let result = await db.update("User", req.body.posterId, userUpdated);
 			res.send({ status: "ok", data: result.data });
 		} catch (e) {
 			console.error(e);
@@ -422,7 +422,6 @@ export class ApiController {
 				(element: any) => element._id !== req.body.reelId
 			);
 			let user: User = {
-				id: result.id,
 				firstName: result.firstName,
 				lastName: result.lastName,
 				phoneNumber: result.phoneNumber,
@@ -441,60 +440,76 @@ export class ApiController {
 		}
 	}
 
+	/*
+	 * req: { userId: string, reelId: string, commentId: string }
+	 * res: Nothing
+	 *
+	 * This method will delete a comment but jSON body needs the comment's id, parent reel id,
+	 * and userId of that reel
+	 */
 	public static async deleteComment(
 		req: express.Request,
 		res: express.Response
 	) {
 		try {
 			const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-			let result: User = (
-				await db.findOne("User", { _id: { $oid: req.body.userId } })
-			).data.document;
-			let reelsList: Reel[] = [...result.reels];
+			let response = await db.findOne("User", {
+				_id: { $oid: req.body.userId },
+			});
+			let user: User = response.data.document;
+			console.log("Hello");
+			let reelsList: Reel[] = [...user.reels];
 			const findReel: Reel[] = reelsList.filter(
-				(reel: Reel) => req.body.reelId === reel.id
+				(reel: Reel) => req.body.reelId === reel._id
 			);
-			let currentReel = findReel[0];
+			let currentReel: Reel = findReel[0];
 			let updatedComments: BRComment[] = currentReel.comments.filter(
 				(comment: BRComment) => req.body.commentId !== comment._id
 			);
 			currentReel.comments = updatedComments;
 			reelsList = reelsList.map((element: Reel) => {
-				if (element.id === currentReel.id) {
+				if (element._id === currentReel._id) {
 					return currentReel;
 				} else {
 					return element;
 				}
 			});
-			const user: User = {
-				...result,
+			console.log("Hello2");
+			const updateUser: User = {
+				firstName: user.firstName,
+				lastName: user.lastName,
+				phoneNumber: user.phoneNumber,
+				spotifyId: user.spotifyId,
+				friendIds: user.friendIds,
 				reels: reelsList,
+				email: user.email,
+				profilePic: user.profilePic,
+				bio: user.bio,
 			};
-			result = await db.update("User", req.body.userId, user);
-			res.send({ status: "ok", data: result });
+			console.log("Hello3");
+			response = await db.update("User", req.body.userId, updateUser);
+			res.send({ status: "ok", data: response.data });
 		} catch (e) {
 			res.send({ status: "error", data: e });
 		}
 	}
 
 	/**
-	 * @param req: { posterId: string, postId: string, commenterId: string, textContent: string}
+	 *:@param req: { posterId: string, postId: string, commenterId: string, textContent: string}
 	 * @param res: Nothing
 	 */
 	public static async commentReel(req: express.Request, res: express.Response) {
 		try {
 			const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-			const user: User = (
-				await db.findOne("User", {
-					_id: { $oid: req.body.posterId },
-				})
-			).data.document;
-
+			const response = await db.findOne("User", {
+				_id: { $oid: req.body.posterId },
+			});
+			let user: User = response.data.document;
 			let commentOID = new ObjectId();
 
 			const reelsWithComment: Reel[] = user.reels.map((reel: Reel) => {
-				if (req.body.postId == reel.id) {
+				if (req.body.postId == reel._id) {
 					const newComments = [
 						...reel.comments,
 						{
@@ -508,25 +523,25 @@ export class ApiController {
 				return reel;
 			});
 
-			const userUpdated: User = {
+			/* const userUpdated = {
 				...user,
 				reels: reelsWithComment,
-			};
-
-			/* 			const userUpdated = {
-				FirstName: userResult.data.document.FirstName,
-				LastName: userResult.data.document.LastName,
-				PhoneNumber: userResult.data.document.PhoneNumber,
-				Spotify: userResult.data.document.Spotify,
-				Friends: userResult.data.document.Friends,
-				Reels: reelsWithComment,
-				Email: userResult.data.document.Email,
-				ProfilePic: userResult.data.document.ProfilePic,
-				Bio: userResult.data.document.Bio,
 			}; */
 
-			let result = await db.update("User", req.body.UserID, userUpdated);
-			res.send({ status: "ok", data: result.data });
+			const userUpdated = {
+				firstName: user.firstName,
+				lastName: user.lastName,
+				phoneNumber: user.phoneNumber,
+				spotifyId: user.spotifyId,
+				friendIds: user.friendIds,
+				reels: reelsWithComment,
+				email: user.email,
+				profilePic: user.profilePic,
+				bio: user.bio,
+			};
+
+			let result = await db.update("User", req.body.posterId, userUpdated);
+			res.send({ status: "ok", data: response.data });
 		} catch (e) {
 			console.error(e);
 			res.send({ status: "error", data: e });
