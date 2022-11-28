@@ -18,7 +18,7 @@ export class SecController {
     try {
       const db = new MongoAtlasDB(
         Config.databaseConfig.dataSource,
-        "exercise3"
+        "BeatReal"
       );
       const result = await db.findOne("security", { username: userName });
       if (!result.data.document) {
