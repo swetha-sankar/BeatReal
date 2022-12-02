@@ -81,6 +81,11 @@ export class SecController {
         email: email,
         phoneNumber: phoneNumber,
         updateDate: new Date(),
+        spotifyId: "",
+        friendIds:[],
+        reels: [],
+        profilePic: null,
+        bio: "",
       };
       result = await db.insert("User", userRecord);
       res.send({ status: "ok", data: result.data });
