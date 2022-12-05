@@ -1,8 +1,7 @@
 import { Reel } from "./reel";
 
 export interface Post {
-  posterId: string;
-  profilePic: string;
   username: string;
+  profilePic: string | null;
   reel: Reel;
 }

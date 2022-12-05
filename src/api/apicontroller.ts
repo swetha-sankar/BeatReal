@@ -2,9 +2,9 @@ import express from "express";
 import { Config } from "../shared/config";
 import { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
-import { ObjectId } from "mongodb";
 import { Post, Reel, User } from "../types/types";
 import { BRComment } from "../types/brcomment";
+import crypto from "crypto";
 
 export class ApiController {
   static baseURL: string = Config.databaseConfig.url;
@@ -43,7 +43,7 @@ export class ApiController {
   }
 
   /**
-   * @param req : get request, doesn't have a body, id is stored in uri
+   * @param req : get request, doesn't have a body, userName is stored in uri
    * @param res : User
    */
   public static async getUserId(
@@ -53,7 +53,7 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const result: User = (
-        await db.findOne("User", { _id: { $oid: req.params.id } })
+        await db.findOne("User", { userName: req.params.userName })
       ).data.document;
       res.send({ status: "ok", result: result });
     } catch (e) {
@@ -63,7 +63,7 @@ export class ApiController {
   }
 
   /**
-   * @param req : get request, doesn't have a body, id is stored in uri
+   * @param req : get request, doesn't have a body, userName is stored in uri
    * @param res : User[] - their friends
    */
   public static async getUserFriends(
@@ -74,17 +74,10 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { _id: { $oid: req.params.id } })
+        await db.findOne("User", { userName: req.params.userName })
       ).data.document;
-      const mappedUserIds = user.friendIds.map((userId: String) => {
-        return {
-          $oid: userId,
-        };
-      });
       const result: User[] = (
-        await db.find("User", {
-          _id: { $in: mappedUserIds },
-        })
+        await db.find("User", { userName: { $in: user.friendNames } })
       ).data.documents;
       res.send({ status: "ok", result: result });
     } catch (e) {
@@ -106,7 +99,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { _id: { $oid: req.params.id } })
+        await db.findOne("User", { userName: req.params.userName })
       ).data.document;
       res.send({ status: "ok", result: user.reels });
     } catch (e) {
@@ -128,27 +121,20 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { _id: { $oid: req.params.id } })
+        await db.findOne("User", { userName: req.params.userName })
       ).data.document;
-      const mappedUserIds = user.friendIds.map((userId: String) => {
-        return {
-          $oid: userId,
-        };
-      });
+
       const friends: User[] = (
-        await db.find("User", {
-          _id: { $in: mappedUserIds },
-        })
+        await db.find("User", { userName: { $in: user.friendNames } })
       ).data.documents;
 
       const friendPosts: Post[] = friends.map((user: User) => ({
-        posterId: user.reels.posterId,
-        profilePic: user.profilePic,
         username: user.userName,
+        profilePic: user.profilePic,
         reel: user.reels[user.reels.length - 1],
       }));
 
-      res.send({ status: "ok", result: friendReels });
+      res.send({ status: "ok", result: friendPosts });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
@@ -168,7 +154,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { _id: { $oid: req.params.id } })
+        await db.findOne("User", { userName: req.params.userName })
       ).data.document;
 
       res.send({
@@ -227,7 +213,7 @@ export class ApiController {
    *
    * @param req - PATCH request, JSON body
    * {
-   * posterId: string,
+   * posterName: string,
    * songId: string
    * }
    * @param res - User with reels updated
@@ -236,37 +222,34 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      let reelOID = new ObjectId();
+      let reelOID = crypto.randomUUID();
       let datetime = new Date();
 
       const reel = {
-        _id: reelOID,
-        posterId: req.body.posterId,
+        reelId: reelOID,
+        posterName: req.body.posterName,
         songId: req.body.songId,
-        date: datetime.toLocaleDateString(),
-        time: datetime.toLocaleTimeString(),
+        date: datetime,
         likes: [], //likes and comments start at 0
         comments: [],
       };
 
-      const userResult = await db.findOne("User", {
-        _id: { $oid: req.body.posterId },
-      });
-      const appendedReel = userResult.data.document.reels.concat(reel);
+      const user: User = (
+        await db.findOne("User", { userName: req.body.posterName })
+      ).data.document;
 
-      const userUpdated = {
-        firstName: userResult.data.document.firstName,
-        lastName: userResult.data.document.lastName,
-        phoneNumber: userResult.data.document.phoneNumber,
-        spotifyId: userResult.data.document.spotifyId,
-        friendIds: userResult.data.document.friendIds,
+      const appendedReel = [...user.reels, reel];
+
+      const userUpdated: User = {
+        ...user,
         reels: appendedReel,
-        email: userResult.data.document.email,
-        profilePic: userResult.data.document.profilePic,
-        bio: userResult.data.document.bio,
       };
 
-      let result = await db.update("User", req.body.posterId, userUpdated);
+      let result = await db.update(
+        "User",
+        { userName: req.params.posterName },
+        userUpdated
+      );
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -276,50 +259,58 @@ export class ApiController {
 
   /**
    * 
-   * @param req - id in URL and PUT request, JSON body
+   * @param req - JSON body is a User type excluding passowrk
    * {
+    oldUserName: req.body.oldUserName,
+    newUserName: req.body.newUserName,
     firstName: string,
     lastName: string,
     phoneNumber: string,
-    spotifyId: string,
-    friendIds: string[],
-    reels: Reel[],
+    // spotifyId: string,
     email: string,
     profilePic: string | null,
     bio: string
     }
    * @param res - User - new or updated
    */
-  public static async putUser(
+  public static async patchUser(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
     const newFields = {
+      userName: req.body.newUserName,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       phoneNumber: req.body.phoneNumber,
-      spotifyId: req.body.spotifyId,
-      friendIds: req.body.friendIds,
-      reels: req.body.reels,
+      // spotifyId: req.body.spotifyId,
       email: req.body.email,
       profilePic: req.body.profilePic,
       bio: req.body.bio,
     };
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      var putResult;
 
-      //if can't find it in the db insert it, otherwise update it
-      try {
-        const findResult = await db.findOne("User", {
-          _id: { $oid: req.params.id },
-        });
-        putResult = db.update("User", req.params.id, newFields);
-      } catch (e) {
-        putResult = await db.insert("User", newFields); //this.postReel(req,res);
-      }
+      const user: User = (
+        await db.findOne("User", { userName: req.body.oldUserName })
+      ).data.document;
 
-      res.send({ status: "ok", data: putResult.data });
+      const patchedReels: Reel[] = user.reels.map((reel: Reel) => ({
+        ...reel,
+        posterName: newFields.userName,
+      }));
+
+      const patchedUser: User = {
+        ...user,
+        ...newFields,
+        reels: patchedReels,
+      };
+
+      let result = await db.update(
+        "User",
+        { userName: req.body.oldUserName },
+        patchedUser
+      );
+      res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
@@ -328,7 +319,12 @@ export class ApiController {
 
   /**
    *
-   * @param req - :posterId/:reelId/:likerId in URL and PUT request, no body
+   * @param req -
+   * {
+   *  posterName: string,
+   *  reelId: string,
+   *  likerName: string
+   * }
    * @param res - User with reel likes updated
    */
   public static async putLike(
@@ -337,54 +333,64 @@ export class ApiController {
   ): Promise<void> {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      const userResult = await db.findOne("User", {
-        _id: { $oid: req.params.posterId },
-      });
-      const reel = userResult.data.document.Reels.find(
-        (reel: any) => reel._id == req.params.reelId
-      );
-      const appendedLikes = reel.likes.concat(req.params.likerId);
 
-      const reelUpdated = {
-        posterId: reel.posterId,
-        songId: reel.songId,
-        date: reel.date,
-        time: reel.time,
-        likes: appendedLikes,
-        comments: reel.comments,
-      };
+      const user: User = (
+        await db.findOne("User", {
+          userName: req.body.posterName,
+        })
+      ).data.document;
+
+      const reelsUpdated = user.reels.map((reel: Reel) => {
+        if (reel.reelId === req.body.reelId) {
+          // remove disliker name
+          if (req.body.likerName in reel.likes) {
+            return reel;
+          }
+
+          const appendedLikes: string[] = [...reel.likes, req.body.likerName];
+
+          const reelUpdated = {
+            ...reel,
+            likes: appendedLikes,
+          };
+          return reelUpdated;
+        } else {
+          return reel;
+        }
+      });
 
       const userUpdated = {
-        firstName: userResult.data.document.firstName,
-        lastName: userResult.data.document.lastName,
-        phoneNumber: userResult.data.document.phoneNumber,
-        spotifyId: userResult.data.document.spotifyId,
-        friendIds: userResult.data.document.friendIds,
-        reels: reelUpdated,
-        email: userResult.data.document.email,
-        profilePic: userResult.data.document.profilePic,
-        bio: userResult.data.document.bio,
+        ...user,
+        reels: reelsUpdated,
       };
 
-      const putResult = await db.update(
+      const result = await db.update(
         "User",
-        req.params.posterId,
+        { userName: req.params.posterName },
         userUpdated
       );
-      res.send({ status: "ok", data: putResult.data });
+      res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
     }
   }
 
-  //deletes a user from Collections
-  //JSON body requires: "_id": "string", this will be the user to be deleted
+  /**
+   *
+   * @param req -
+   * {
+   *  userName: string
+   * }
+   * @param res
+   */
   public static async deleteUser(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const result = await db.deleteOne("User", req.body._id);
+      const result = await db.deleteOne("User", {
+        username: req.body.userName,
+      });
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -392,19 +398,52 @@ export class ApiController {
     }
   }
 
-  // Will most definitely be changed as Reels will be embedded in users
-  // and we need to figure out how to access data from database rather than just using
-  // Postman to input JSON data.
+  /**
+   *
+   * @param req -
+   * {
+   *  posterName: string,
+   *  reelId: string,
+   *  dislikerName: string
+   * }
+   * @param res - User with reel likes updated
+   */
   public static async unlikeReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+      const user: User = (
+        await db.findOne("User", {
+          userName: req.body.posterName,
+        })
+      ).data.document;
 
-      const unlike = [...req.body.likes];
-      unlike.filter((userId) => userId == req.body.userId);
+      const reelsUpdated = user.reels.map((reel: Reel) => {
+        if (reel.reelId === req.body.reelId) {
+          // remove disliker name
+          const removedLikes = reel.likes.filter(
+            (userName: string) => userName !== req.body.dislikerName
+          );
 
-      const newObj = { ...req.body, likes: unlike };
+          const reelUpdated = {
+            ...reel,
+            likes: removedLikes,
+          };
+          return reelUpdated;
+        } else {
+          return reel;
+        }
+      });
 
-      const result = await db.update("Reel", req.body.ReelId, newObj);
+      const userUpdated = {
+        ...user,
+        reels: reelsUpdated,
+      };
+
+      const result = await db.update(
+        "User",
+        { userName: req.body.posterName },
+        userUpdated
+      );
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -412,32 +451,36 @@ export class ApiController {
     }
   }
 
-  // JSON Body requires: userId and ReelId
-  // userId is the user of which the reel will be removed
-  // and reelId is the reel to be removed
+  /**
+   *
+   * @param req -
+   * {
+   *  userName: string
+   *  reelId: string
+   * }
+   * @param res
+   */
   public static async deleteReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      //let result = await db.deleteOne('User', req.body.reelId);
-      let result: User = (
-        await db.findOne("User", { _id: { $oid: req.body.userId } })
+
+      const user: User = (
+        await db.findOne("User", { username: req.body.userName })
       ).data.document;
-      let updatedReels: Reel[] = [...result.reels];
-      updatedReels = updatedReels.filter(
-        (element: any) => element._id !== req.body.reelId
+
+      const reelsUpdated: Reel[] = user.reels.filter(
+        (reel: Reel) => reel.reelId !== req.body.reelId
       );
-      let user: User = {
-        firstName: result.firstName,
-        lastName: result.lastName,
-        phoneNumber: result.phoneNumber,
-        spotifyId: result.spotifyId,
-        friendIds: result.friendIds,
-        reels: updatedReels,
-        email: result.email,
-        profilePic: result.profilePic,
-        bio: result.bio,
+
+      const updatedUser: User = {
+        ...user,
+        reels: reelsUpdated,
       };
-      result = await db.update("User", req.body.userId, user);
+      const result = await db.update(
+        "User",
+        { userName: req.body.userName },
+        updatedUser
+      );
       res.send({ status: "ok", data: result });
     } catch (e) {
       console.error(e);
@@ -446,7 +489,7 @@ export class ApiController {
   }
 
   /*
-   * req: { userId: string, reelId: string, commentId: string }
+   * req: { userName: string, reelId: string, commentId: string }
    * res: Nothing
    *
    * This method will delete a comment but jSON body needs the comment's id, parent reel id,
@@ -458,41 +501,39 @@ export class ApiController {
   ) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      let response = await db.findOne("User", {
-        _id: { $oid: req.body.userId },
-      });
-      let user: User = response.data.document;
-      console.log("Hello");
-      let reelsList: Reel[] = [...user.reels];
-      const findReel: Reel[] = reelsList.filter(
-        (reel: Reel) => req.body.reelId === reel._id
-      );
-      let currentReel: Reel = findReel[0];
-      let updatedComments: BRComment[] = currentReel.comments.filter(
-        (comment: BRComment) => req.body.commentId !== comment._id
-      );
-      currentReel.comments = updatedComments;
-      reelsList = reelsList.map((element: Reel) => {
-        if (element._id === currentReel._id) {
-          return currentReel;
+
+      const user: User = (
+        await db.findOne("User", {
+          userName: req.params.posterName,
+        })
+      ).data.document;
+
+      const reelsUpdated: Reel[] = user.reels.map((reel: Reel) => {
+        if (reel.reelId === req.body.reelId) {
+          const removedComments = reel.comments.filter(
+            (comment: BRComment) => comment.commentId !== req.body.commentId
+          );
+
+          const reelUpdated = {
+            ...reel,
+            comments: removedComments,
+          };
+          return reelUpdated;
         } else {
-          return element;
+          return reel;
         }
       });
-      console.log("Hello2");
-      const updateUser: User = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
-        spotifyId: user.spotifyId,
-        friendIds: user.friendIds,
-        reels: reelsList,
-        email: user.email,
-        profilePic: user.profilePic,
-        bio: user.bio,
+
+      const updatedUser: User = {
+        ...user,
+        reels: reelsUpdated,
       };
-      console.log("Hello3");
-      response = await db.update("User", req.body.userId, updateUser);
+
+      const response = await db.update(
+        "User",
+        { userName: req.body.userName },
+        updatedUser
+      );
       res.send({ status: "ok", data: response.data });
     } catch (e) {
       res.send({ status: "error", data: e });
@@ -500,52 +541,48 @@ export class ApiController {
   }
 
   /**
-   *:@param req: { posterId: string, postId: string, commenterId: string, textContent: string}
+   *:@param req: { posterName: string, reelId: string, commenterId: string, textContent: string}
    * @param res: Nothing
    */
   public static async commentReel(req: express.Request, res: express.Response) {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
-      const response = await db.findOne("User", {
-        _id: { $oid: req.body.posterId },
-      });
-      let user: User = response.data.document;
-      let commentOID = new ObjectId();
+      const user: User = (
+        await db.findOne("User", {
+          userName: req.params.posterName,
+        })
+      ).data.document;
 
-      const reelsWithComment: Reel[] = user.reels.map((reel: Reel) => {
-        if (req.body.postId == reel._id) {
-          const newComments = [
-            ...reel.comments,
-            {
-              _id: commentOID,
-              commenterId: req.body.commenterId as string,
-              textContent: req.body.textContent as string,
-            } as BRComment,
-          ];
-          return { ...reel, comments: newComments };
+      const reelsUpdated: Reel[] = user.reels.map((reel: Reel) => {
+        if (reel.reelId === req.body.reelId) {
+          const newComment: BRComment = {
+            commentId: crypto.randomUUID(),
+            commenterId: req.body.commenterId,
+            textContent: req.body.textContent,
+          };
+          const addedComments = [...reel.comments, newComment];
+
+          const reelUpdated = {
+            ...reel,
+            comments: addedComments,
+          };
+          return reelUpdated;
+        } else {
+          return reel;
         }
-        return reel;
       });
 
-      /* const userUpdated = {
-				...user,
-				reels: reelsWithComment,
-			}; */
-
-      const userUpdated = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
-        spotifyId: user.spotifyId,
-        friendIds: user.friendIds,
-        reels: reelsWithComment,
-        email: user.email,
-        profilePic: user.profilePic,
-        bio: user.bio,
+      const updatedUser: User = {
+        ...user,
+        reels: reelsUpdated,
       };
 
-      let result = await db.update("User", req.body.posterId, userUpdated);
+      const response = await db.update(
+        "User",
+        { userName: req.body.posterName },
+        updatedUser
+      );
       res.send({ status: "ok", data: response.data });
     } catch (e) {
       console.error(e);

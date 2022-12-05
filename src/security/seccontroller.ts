@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Config } from "../shared/config";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
 import { SecUtils } from "../shared/secutils";
+import { User } from "../types/types";
 
 export class SecController {
   // /token
@@ -16,10 +17,7 @@ export class SecController {
       return;
     }
     try {
-      const db = new MongoAtlasDB(
-        Config.databaseConfig.dataSource,
-        "BeatReal"
-      );
+      const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const result = await db.findOne("User", { username: userName });
       if (!result.data.document) {
         res.send({ status: "error", data: "Invalid login" });
@@ -51,11 +49,20 @@ export class SecController {
     const phoneNumber: string = req.body.phoneNumber;
     const firstName: string = req.body.firstName;
     const lastName: string = req.body.lastName;
-		const email: string = req.body.email;
+    const email: string = req.body.email;
 
-
-    if (!userName || !password || !phoneNumber || !firstName || !lastName || !email) {
-      res.send({ status: "error", data: "username, password, phone number, first name, last name, and email required" });
+    if (
+      !userName ||
+      !password ||
+      !phoneNumber ||
+      !firstName ||
+      !lastName ||
+      !email
+    ) {
+      res.send({
+        status: "error",
+        data: "username, password, phone number, first name, last name, and email required",
+      });
       return;
     }
 
@@ -73,16 +80,16 @@ export class SecController {
         res.send({ status: "error", data: "Phone number in use" });
         return;
       }
-      const userRecord = {
+      const userRecord: User = {
+        userName: userName,
+        password: hash,
         firstName: firstName,
         lastName: lastName,
-        username: userName,
-        password: hash,
         email: email,
         phoneNumber: phoneNumber,
         updateDate: new Date(),
         spotifyId: "",
-        friendIds:[],
+        friendNames: [],
         reels: [],
         profilePic: null,
         bio: "",
