@@ -24,7 +24,6 @@ export class ApiRouter extends Router {
     this.router.patch("/editUser", ApiController.patchUser);
     this.router.patch("/deleteReel", ApiController.deleteReel);
     this.router.patch("/insertReel", ApiController.patchReel);
-    this.router.patch("/users/id/likes", ApiController.unlikeReel);
     this.router.patch("/commentReel", ApiController.commentReel);
     this.router.patch("/deleteComment", ApiController.deleteComment);
   }
