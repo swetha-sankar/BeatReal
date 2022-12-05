@@ -33,7 +33,7 @@ export class SecController {
         _id: result.data.document._id,
         username: username,
       });
-      res.send({ status: "ok", data: { token: token } });
+      res.send({ status: "ok", data: { token: token, username: username } });
     } catch (e) {
       console.error(e);
       res.send({ status: "error", data: e });
