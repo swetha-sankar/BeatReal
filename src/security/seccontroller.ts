@@ -10,15 +10,15 @@ export class SecController {
   //returns status ok, with a token in data if successfull
   //returns status error on failure with msg in data
   public static async login(req: Request, res: Response): Promise<void> {
-    const userName: string = req.body.username;
+    const username: string = req.body.username;
     const password: string = req.body.password;
-    if (!userName || !password) {
+    if (!username || !password) {
       res.send({ status: "error", data: "username and password required" });
       return;
     }
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      const result = await db.findOne("User", { username: userName });
+      const result = await db.findOne("User", { username: username });
       if (!result.data.document) {
         res.send({ status: "error", data: "Invalid login" });
         return;
@@ -31,7 +31,7 @@ export class SecController {
       }
       const token = SecUtils.getToken({
         _id: result.data.document._id,
-        username: userName,
+        username: username,
       });
       res.send({ status: "ok", data: { token: token } });
     } catch (e) {
@@ -44,7 +44,7 @@ export class SecController {
   //returns status ok, inserted id in data if successfull
   //returns status error on failure with msg in data
   public static async register(req: Request, res: Response): Promise<void> {
-    const userName: string = req.body.username;
+    const username: string = req.body.username;
     const password: string = req.body.password;
     const phoneNumber: string = req.body.phoneNumber;
     const firstName: string = req.body.firstName;
@@ -52,7 +52,7 @@ export class SecController {
     const email: string = req.body.email;
 
     if (
-      !userName ||
+      !username ||
       !password ||
       !phoneNumber ||
       !firstName ||
@@ -70,7 +70,7 @@ export class SecController {
       const hash: string = await SecUtils.createHash(password);
 
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      let result = await db.findOne("User", { username: userName });
+      let result = await db.findOne("User", { username: username });
       if (result.data.document) {
         res.send({ status: "error", data: "Username in use" });
         return;
@@ -81,7 +81,7 @@ export class SecController {
         return;
       }
       const userRecord: User = {
-        userName: userName,
+        username: username,
         password: hash,
         firstName: firstName,
         lastName: lastName,

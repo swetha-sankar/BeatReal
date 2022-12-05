@@ -1,7 +1,7 @@
 import { Reel } from "./reel";
 
 export interface User {
-  userName: string;
+  username: string;
   password: string;
   firstName: string;
   lastName: string;

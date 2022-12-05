@@ -43,7 +43,7 @@ export class ApiController {
   }
 
   /**
-   * @param req : get request, doesn't have a body, userName is stored in uri
+   * @param req : get request, doesn't have a body, username is stored in uri
    * @param res : User
    */
   public static async getUserName(
@@ -53,7 +53,7 @@ export class ApiController {
     try {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const result: User = (
-        await db.findOne("User", { userName: req.params.userName })
+        await db.findOne("User", { username: req.params.username })
       ).data.document;
       res.send({ status: "ok", result: result });
     } catch (e) {
@@ -63,7 +63,7 @@ export class ApiController {
   }
 
   /**
-   * @param req : get request, doesn't have a body, userName is stored in uri
+   * @param req : get request, doesn't have a body, username is stored in uri
    * @param res : User[] - their friends
    */
   public static async getUserFriends(
@@ -74,10 +74,10 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { userName: req.params.userName })
+        await db.findOne("User", { username: req.params.username })
       ).data.document;
       const result: User[] = (
-        await db.find("User", { userName: { $in: user.friendNames } })
+        await db.find("User", { username: { $in: user.friendNames } })
       ).data.documents;
       res.send({ status: "ok", result: result });
     } catch (e) {
@@ -99,7 +99,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { userName: req.params.userName })
+        await db.findOne("User", { username: req.params.username })
       ).data.document;
       res.send({ status: "ok", result: user.reels });
     } catch (e) {
@@ -121,15 +121,15 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { userName: req.params.userName })
+        await db.findOne("User", { username: req.params.username })
       ).data.document;
 
       const friends: User[] = (
-        await db.find("User", { userName: { $in: user.friendNames } })
+        await db.find("User", { username: { $in: user.friendNames } })
       ).data.documents;
 
       const friendPosts: Post[] = friends.map((user: User) => ({
-        username: user.userName,
+        username: user.username,
         profilePic: user.profilePic,
         reel: user.reels[user.reels.length - 1],
       }));
@@ -154,7 +154,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { userName: req.params.userName })
+        await db.findOne("User", { username: req.params.username })
       ).data.document;
 
       res.send({
@@ -235,7 +235,7 @@ export class ApiController {
       };
 
       const user: User = (
-        await db.findOne("User", { userName: req.body.posterName })
+        await db.findOne("User", { username: req.body.posterName })
       ).data.document;
 
       const appendedReel = [...user.reels, reel];
@@ -247,7 +247,7 @@ export class ApiController {
 
       let result = await db.update(
         "User",
-        { userName: req.params.posterName },
+        { username: req.params.posterName },
         userUpdated
       );
       res.send({ status: "ok", data: result.data });
@@ -278,7 +278,7 @@ export class ApiController {
     res: express.Response
   ): Promise<void> {
     const newFields = {
-      userName: req.body.newUserName,
+      username: req.body.newUserName,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       phoneNumber: req.body.phoneNumber,
@@ -291,12 +291,12 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { userName: req.body.oldUserName })
+        await db.findOne("User", { username: req.body.oldUserName })
       ).data.document;
 
       const patchedReels: Reel[] = user.reels.map((reel: Reel) => ({
         ...reel,
-        posterName: newFields.userName,
+        posterName: newFields.username,
       }));
 
       const patchedUser: User = {
@@ -307,7 +307,7 @@ export class ApiController {
 
       let result = await db.update(
         "User",
-        { userName: req.body.oldUserName },
+        { username: req.body.oldUserName },
         patchedUser
       );
       res.send({ status: "ok", data: result.data });
@@ -336,7 +336,7 @@ export class ApiController {
 
       const user: User = (
         await db.findOne("User", {
-          userName: req.body.posterName,
+          username: req.body.posterName,
         })
       ).data.document;
 
@@ -366,7 +366,7 @@ export class ApiController {
 
       const result = await db.update(
         "User",
-        { userName: req.params.posterName },
+        { username: req.params.posterName },
         userUpdated
       );
       res.send({ status: "ok", data: result.data });
@@ -380,7 +380,7 @@ export class ApiController {
    *
    * @param req -
    * {
-   *  userName: string
+   *  username: string
    * }
    * @param res
    */
@@ -389,7 +389,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const result = await db.deleteOne("User", {
-        username: req.body.userName,
+        username: req.body.username,
       });
       res.send({ status: "ok", data: result.data });
     } catch (e) {
@@ -413,7 +413,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
       const user: User = (
         await db.findOne("User", {
-          userName: req.body.posterName,
+          username: req.body.posterName,
         })
       ).data.document;
 
@@ -421,7 +421,7 @@ export class ApiController {
         if (reel.reelId === req.body.reelId) {
           // remove disliker name
           const removedLikes = reel.likes.filter(
-            (userName: string) => userName !== req.body.dislikerName
+            (username: string) => username !== req.body.dislikerName
           );
 
           const reelUpdated = {
@@ -441,7 +441,7 @@ export class ApiController {
 
       const result = await db.update(
         "User",
-        { userName: req.body.posterName },
+        { username: req.body.posterName },
         userUpdated
       );
       res.send({ status: "ok", data: result.data });
@@ -455,7 +455,7 @@ export class ApiController {
    *
    * @param req -
    * {
-   *  userName: string
+   *  username: string
    *  reelId: string
    * }
    * @param res
@@ -465,7 +465,7 @@ export class ApiController {
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
 
       const user: User = (
-        await db.findOne("User", { username: req.body.userName })
+        await db.findOne("User", { username: req.body.username })
       ).data.document;
 
       const reelsUpdated: Reel[] = user.reels.filter(
@@ -478,7 +478,7 @@ export class ApiController {
       };
       const result = await db.update(
         "User",
-        { userName: req.body.userName },
+        { username: req.body.username },
         updatedUser
       );
       res.send({ status: "ok", data: result });
@@ -489,7 +489,7 @@ export class ApiController {
   }
 
   /*
-   * req: { userName: string, reelId: string, commentId: string }
+   * req: { username: string, reelId: string, commentId: string }
    * res: Nothing
    *
    * This method will delete a comment but jSON body needs the comment's id, parent reel id,
@@ -504,7 +504,7 @@ export class ApiController {
 
       const user: User = (
         await db.findOne("User", {
-          userName: req.params.posterName,
+          username: req.params.posterName,
         })
       ).data.document;
 
@@ -531,7 +531,7 @@ export class ApiController {
 
       const response = await db.update(
         "User",
-        { userName: req.body.userName },
+        { username: req.body.username },
         updatedUser
       );
       res.send({ status: "ok", data: response.data });
@@ -550,7 +550,7 @@ export class ApiController {
 
       const user: User = (
         await db.findOne("User", {
-          userName: req.params.posterName,
+          username: req.params.posterName,
         })
       ).data.document;
 
@@ -580,7 +580,7 @@ export class ApiController {
 
       const response = await db.update(
         "User",
-        { userName: req.body.posterName },
+        { username: req.body.posterName },
         updatedUser
       );
       res.send({ status: "ok", data: response.data });

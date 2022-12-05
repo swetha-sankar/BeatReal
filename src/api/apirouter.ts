@@ -6,15 +6,12 @@ import { ApiController } from "./apicontroller";
 export class ApiRouter extends Router {
   public createRouter(): void {
     this.router.get("/users", ApiController.getUsers);
-    this.router.get("/users/:userName", ApiController.getUserName);
+    this.router.get("/users/:username", ApiController.getUserName);
+    this.router.get("/users/:username/friends", ApiController.getUserFriends);
+    this.router.get("/users/:username/reels", ApiController.getUserReels);
+    this.router.get("/users/:username/feed", ApiController.getUserFeed);
     this.router.get(
-      "/users/:userName/friendNames",
-      ApiController.getUserFriends
-    );
-    this.router.get("/users/:userName/reels", ApiController.getUserReels);
-    this.router.get("/users/:userName/feed", ApiController.getUserFeed);
-    this.router.get(
-      "/users/:userName/currentReel",
+      "/users/:username/currentReel",
       ApiController.getUserCurrReel
     );
     // this.router.post("/insertUser", ApiController.postUser);
