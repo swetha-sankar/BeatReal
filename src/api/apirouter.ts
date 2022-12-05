@@ -15,13 +15,13 @@ export class ApiRouter extends Router {
       ApiController.getUserCurrReel
     );
     // this.router.post("/insertUser", ApiController.postUser);
-    this.router.put("/likeReel", ApiController.putLike);
-    this.router.patch("/unlikeReel", ApiController.unlikeReel);
-    this.router.delete("/deleteUser", ApiController.deleteUser);
-    this.router.patch("/editUser", ApiController.patchUser);
-    this.router.patch("/deleteReel", ApiController.deleteReel);
+    // this.router.put("/likeReel", ApiController.putLike);
+    // this.router.patch("/unlikeReel", ApiController.unlikeReel);
+    // this.router.delete("/deleteUser", ApiController.deleteUser);
+    // this.router.patch("/editUser", ApiController.patchUser);
+    // this.router.patch("/deleteReel", ApiController.deleteReel);
     this.router.patch("/insertReel", ApiController.patchReel);
-    this.router.patch("/commentReel", ApiController.commentReel);
-    this.router.patch("/deleteComment", ApiController.deleteComment);
+    // this.router.patch("/commentReel", ApiController.commentReel);
+    // this.router.patch("/deleteComment", ApiController.deleteComment);
   }
 }

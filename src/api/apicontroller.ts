@@ -225,7 +225,7 @@ export class ApiController {
       let reelOID = crypto.randomUUID();
       let datetime = new Date();
 
-      const reel = {
+      const reel: Reel = {
         reelId: reelOID,
         posterName: req.body.posterName,
         songId: req.body.songId,
@@ -244,6 +244,8 @@ export class ApiController {
         ...user,
         reels: appendedReel,
       };
+
+      delete userUpdated._id;
 
       let result = await db.update(
         "User",
@@ -305,6 +307,8 @@ export class ApiController {
         reels: patchedReels,
       };
 
+      delete patchedUser._id;
+
       let result = await db.update(
         "User",
         { username: req.body.oldUserName },
@@ -363,6 +367,8 @@ export class ApiController {
         ...user,
         reels: reelsUpdated,
       };
+
+      delete userUpdated._id;
 
       const result = await db.update(
         "User",
@@ -439,6 +445,8 @@ export class ApiController {
         reels: reelsUpdated,
       };
 
+      delete userUpdated._id;
+
       const result = await db.update(
         "User",
         { username: req.body.posterName },
@@ -476,6 +484,9 @@ export class ApiController {
         ...user,
         reels: reelsUpdated,
       };
+
+      delete updatedUser._id;
+
       const result = await db.update(
         "User",
         { username: req.body.username },
@@ -529,6 +540,8 @@ export class ApiController {
         reels: reelsUpdated,
       };
 
+      delete updatedUser._id;
+
       const response = await db.update(
         "User",
         { username: req.body.username },
@@ -577,6 +590,8 @@ export class ApiController {
         ...user,
         reels: reelsUpdated,
       };
+
+      delete updatedUser._id;
 
       const response = await db.update(
         "User",
