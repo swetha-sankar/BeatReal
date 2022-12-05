@@ -46,7 +46,7 @@ export class ApiController {
    * @param req : get request, doesn't have a body, userName is stored in uri
    * @param res : User
    */
-  public static async getUserId(
+  public static async getUserName(
     req: express.Request,
     res: express.Response
   ): Promise<void> {
