@@ -52,12 +52,41 @@ export class SpotifyController {
             ? process.env.spotifyClientID
             : "",
           scope: scope,
-          redirect_uri: process.env.spotifyRedirectURI
-            ? process.env.spotifyRedirectURI
-            : "",
+          redirect_uri: "http://localhost:3000/callback",
+          // redirect_uri: process.env.spotifyRedirectURI
+          //   ? process.env.spotifyRedirectURI
+          //   : "",
           state: state,
           show_dialog: true, //false(by default). Whether or not to force the user to approve the app again if they’ve already done so
         })
     );
+  }
+
+  //Callback api from the redirect of login (in front-end)
+  //Redirects to desired front end page
+  static callback(req: express.Request, res: express.Response): void {
+    let code = req.query.code || null;
+    let state = req.query.stae || null;
+
+    if (state === null) {
+      console.log("error: state is null... handle later");
+      // res.redirect('/#' +
+      //   querystring.stringify({
+      //     error: 'state_mismatch'
+      //   }));
+    } else {
+      let authOptions = {
+        url: 'https://accounts.spotify.com/api/token',
+        form: {
+          code: code,
+          redirect_uri: process.env.spotifyRedirectURI,
+          grant_type: 'authorization_code'
+        },
+        headers: {
+          'Authorization': 'Basic ' + (Buffer.from(process.env.spotifyClientID + ':' + process.env.spotifyClientSecret).toString('base64'))
+        },
+        json: true
+      };
+    }
   }
 }

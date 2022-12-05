@@ -5,5 +5,6 @@ import { SpotifyController } from "./spotifycontroller";
 export class SpotifyRouter extends Router {
   public createRouter(): void {
     this.router.get("/login", SpotifyController.login);
+    this.router.get("/callback", SpotifyController.callback);
   }
 }
