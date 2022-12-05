@@ -541,7 +541,7 @@ export class ApiController {
   }
 
   /**
-   *:@param req: { posterName: string, reelId: string, commenterId: string, textContent: string}
+   *:@param req: { posterName: string, reelId: string, commenterName: string, textContent: string}
    * @param res: Nothing
    */
   public static async commentReel(req: express.Request, res: express.Response) {
@@ -558,7 +558,7 @@ export class ApiController {
         if (reel.reelId === req.body.reelId) {
           const newComment: BRComment = {
             commentId: crypto.randomUUID(),
-            commenterId: req.body.commenterId,
+            commenterName: req.body.commenterName,
             textContent: req.body.textContent,
           };
           const addedComments = [...reel.comments, newComment];

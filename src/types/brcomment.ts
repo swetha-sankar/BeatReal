@@ -1,5 +1,5 @@
 export interface BRComment {
   commentId: string;
-  commenterId: string;
+  commenterName: string;
   textContent: string;
 }
