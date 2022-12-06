@@ -185,92 +185,83 @@ export class ApiController {
 		}
 	}
 
-	// /*
-	//  * req: { username: string, friendName: string }
-	//  * res: Nothing
-	//  *
-	//  * This method will delete a comment but jSON body needs the comment's id, parent reel id,
-	//  * and userId of that reel
-	//  */
-	// public static async addFriend(req: express.Request, res: express.Response) {
-	//   try {
-	//     const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+	/*
+	 * req: { username: string, friendName: string }
+	 * res: Nothing
+	 *
+	 */
+	public static async addFriend(req: express.Request, res: express.Response) {
+		try {
+			const db = new MongoAtlasDB(
+				Config.databaseConfig.dataSource,
+				"BeatReal"
+			);
 
-	//     const user: User = (
-	//       await db.findOne("User", {
-	//         username: req.body.username,
-	//       })
-	//     ).data.document;
+			const user: User = (
+				await db.findOne("User", {
+					username: req.body.username,
+				})
+			).data.document;
 
-	//     const updatedUser: User = {
-	//       ...user,
-	//       friendNames: [...user.friendNames, req.body.friendName],
-	//     };
+			const updatedUser: User = {
+				...user,
+				friendNames: [...user.friendNames, req.body.friendName],
+			};
 
-	//     delete updatedUser._id;
+			delete updatedUser._id;
 
-	//     const response = await db.update(
-	//       "User",
-	//       { username: req.body.username },
-	//       updatedUser
-	//     );
-	//     res.send({ status: "ok", data: response.data });
-	//   } catch (e) {
-	//     res.send({ status: "error", data: e });
-	//   }
-	// }
+			const response = await db.update(
+				"User",
+				{ username: req.body.username },
+				updatedUser
+			);
+			res.send({ status: "ok", data: response.data });
+		} catch (e) {
+			res.send({ status: "error", data: e });
+		}
+	}
 
-	// /**
-	//  *:@param req: { posterName: string, reelId: string, commenterName: string, textContent: string}
-	//  * @param res: Nothing
-	//  */
-	// public static async commentReel(req: express.Request, res: express.Response) {
-	//   try {
-	//     const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+	/*
+	 * req: { username: string, friendName: string }
+	 * res: Nothing
+	 */
+	public static async removeFriend(
+		req: express.Request,
+		res: express.Response
+	) {
+		try {
+			const db = new MongoAtlasDB(
+				Config.databaseConfig.dataSource,
+				"BeatReal"
+			);
 
-	//     const user: User = (
-	//       await db.findOne("User", {
-	//         username: req.params.posterName,
-	//       })
-	//     ).data.document;
+			const user: User = (
+				await db.findOne("User", {
+					username: req.body.username,
+				})
+			).data.document;
 
-	//     const reelsUpdated: Reel[] = user.reels.map((reel: Reel) => {
-	//       if (reel.reelId === req.body.reelId) {
-	//         const newComment: BRComment = {
-	//           commentId: crypto.randomUUID(),
-	//           commenterName: req.body.commenterName,
-	//           textContent: req.body.textContent,
-	//         };
-	//         const addedComments = [...reel.comments, newComment];
+			const filteredFriends = user.friendNames.filter(
+				(username: string) => username !== req.body.friendName
+			);
 
-	//         const reelUpdated = {
-	//           ...reel,
-	//           comments: addedComments,
-	//         };
-	//         return reelUpdated;
-	//       } else {
-	//         return reel;
-	//       }
-	//     });
+			const updatedUser: User = {
+				...user,
+				friendNames: filteredFriends,
+			};
 
-	//     const updatedUser: User = {
-	//       ...user,
-	//       reels: reelsUpdated,
-	//     };
+			delete updatedUser._id;
 
-	//     delete updatedUser._id;
-
-	//     const response = await db.update(
-	//       "User",
-	//       { username: req.body.posterName },
-	//       updatedUser
-	//     );
-	//     res.send({ status: "ok", data: response.data });
-	//   } catch (e) {
-	//     console.error(e);
-	//     res.send({ status: "error", data: e });
-	//   }
-	// }
+			const response = await db.update(
+				"User",
+				{ username: req.body.username },
+				updatedUser
+			);
+			res.send({ status: "ok", data: response.data });
+		} catch (e) {
+			res.send({ status: "error", data: e });
+		}
+	}
 
 	/**
 	 *
