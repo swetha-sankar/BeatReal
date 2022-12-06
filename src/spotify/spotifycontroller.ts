@@ -40,7 +40,7 @@ export class SpotifyController {
   //     data: null,
   //   };
 
-/*
+
   static login(req: express.Request, res: express.Response): void {
     let state = makeid(16);
     let scope = `streaming user-read-email user-read-private user-library-read user-library-modify
@@ -64,7 +64,7 @@ export class SpotifyController {
           show_dialog: true, //false(by default). Whether or not to force the user to approve the app again if they’ve already done so
         })
     );
-    */
+  }
 
     public static async link(req: express.Request, res: express.Response): Promise<void> {
       try {
@@ -146,7 +146,7 @@ export class SpotifyController {
         redirectParams.append('scope', `${response.data.scope}`);
         redirectParams.append('expires_in', `${response.data.expires_in}`)
         redirectParams.append('refresh_token', `${response.data.refresh_token}`)
-        res.redirect(`http://localhost:4200?${redirectParams.toString()}`);
+        res.redirect(`http://localhost:4200/profile?${redirectParams.toString()}`);
 
       } catch(e) {
         console.log(e);
