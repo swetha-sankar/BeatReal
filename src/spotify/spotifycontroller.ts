@@ -6,6 +6,7 @@ import querystring from "query-string";
 // import fetch from "node-fetch";
 import { URLSearchParams } from "url";
 
+
 function makeid(length: number) {
   let result = "";
   let characters =
@@ -17,9 +18,9 @@ function makeid(length: number) {
   return result;
 }
 
-const AUTH_URL: string = `https://accounts.spotify.com/authorize?client_id=3ecc3a4b5b974d02a9b9e12b7f2ace9b
-  &response_type=code&redirect_uri=http://localhost:3000/api/hello&scope=streaming%20user-read-email
-  %20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
+// const AUTH_URL: string = `https://accounts.spotify.com/authorize?client_id=3ecc3a4b5b974d02a9b9e12b7f2ace9b
+//   &response_type=code&redirect_uri=http://localhost:3000/api/hello&scope=streaming%20user-read-email
+//   %20user-read-private%20user-library-read%20user-library-modify%20user-read-playback-state%20user-modify-playback-state`;
 
 export class SpotifyController {
   //   static baseURL: string = Config.databaseConfig.url;
@@ -39,6 +40,7 @@ export class SpotifyController {
   //     data: null,
   //   };
 
+/*
   static login(req: express.Request, res: express.Response): void {
     let state = makeid(16);
     let scope = `streaming user-read-email user-read-private user-library-read user-library-modify
@@ -62,7 +64,37 @@ export class SpotifyController {
           show_dialog: true, //false(by default). Whether or not to force the user to approve the app again if they’ve already done so
         })
     );
-  }
+    */
+
+    public static async link(req: express.Request, res: express.Response): Promise<void> {
+      try {
+        const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
+        const userResult = await db.findOne("User", {
+          _id: { $oid: req.params.posterId },
+        });
+  
+        const userUpdated = {
+          firstName: userResult.data.document.firstName,
+          lastName: userResult.data.document.lastName,
+          phoneNumber: userResult.data.document.phoneNumber,
+          spotifyId: req.params.spotifyid,
+          friendIds: userResult.data.document.friendIds,
+          reels: userResult.data.document.reels,
+          email: userResult.data.document.email,
+          profilePic: userResult.data.document.profilePic,
+          bio: userResult.data.document.bio
+        };
+        const putResult = await db.update(
+          "User",
+          req.params.userid,
+          userUpdated
+        );
+        res.send({ status: "ok", data: putResult.data });
+      } catch (e) {
+        console.error(e);
+        res.send({ status: "error", data: e });
+      }
+    };
 
   //Callback api from the redirect of login (in front-end)
   //Redirects to desired front end page
@@ -131,4 +163,4 @@ export class SpotifyController {
       // }).then(result => result.json()).then(data => console.log(data))
     }
   }
-}
+};

@@ -18,9 +18,9 @@ export class SecController {
     try {
       const db = new MongoAtlasDB(
         Config.databaseConfig.dataSource,
-        "exercise3"
+        "BeatReal"
       );
-      const result = await db.findOne("security", { username: userName });
+      const result = await db.findOne("User", { username: userName });
       if (!result.data.document) {
         res.send({ status: "error", data: "Invalid login" });
         return;
@@ -48,9 +48,14 @@ export class SecController {
   public static async register(req: Request, res: Response): Promise<void> {
     const userName: string = req.body.username;
     const password: string = req.body.password;
+    const phoneNumber: string = req.body.phoneNumber;
+    const firstName: string = req.body.firstName;
+    const lastName: string = req.body.lastName;
+		const email: string = req.body.email;
 
-    if (!userName || !password) {
-      res.send({ status: "error", data: "username and password required" });
+
+    if (!userName || !password || !phoneNumber || !firstName || !lastName || !email) {
+      res.send({ status: "error", data: "username, password, phone number, first name, last name, and email required" });
       return;
     }
 
@@ -58,17 +63,31 @@ export class SecController {
       const hash: string = await SecUtils.createHash(password);
 
       const db = new MongoAtlasDB(Config.databaseConfig.dataSource, "BeatReal");
-      let result = await db.findOne("security", { username: userName });
+      let result = await db.findOne("User", { username: userName });
       if (result.data.document) {
         res.send({ status: "error", data: "Username in use" });
         return;
       }
+      let phoneResult = await db.findOne("User", { phoneNumber: phoneNumber });
+      if (phoneResult.data.document) {
+        res.send({ status: "error", data: "Phone number in use" });
+        return;
+      }
       const userRecord = {
+        firstName: firstName,
+        lastName: lastName,
         username: userName,
         password: hash,
+        email: email,
+        phoneNumber: phoneNumber,
         updateDate: new Date(),
+        spotifyId: "",
+        friendIds:[],
+        reels: [],
+        profilePic: null,
+        bio: "",
       };
-      result = await db.insert("security", userRecord);
+      result = await db.insert("User", userRecord);
       res.send({ status: "ok", data: result.data });
     } catch (e) {
       console.error(e);
@@ -96,7 +115,7 @@ export class SecController {
         password: hash,
         updateDate: new Date(),
       };
-      const result = await db.update("security", user._id, userRecord);
+      const result = await db.update("User", user._id, userRecord);
       if (result.data.matchedCount > 0)
         res.send({ status: "ok", data: result.data });
       else
