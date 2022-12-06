@@ -3,6 +3,8 @@ import { Config } from "../shared/config";
 import axios, { AxiosRequestConfig } from "axios";
 import { MongoAtlasDB } from "../shared/MongoAtlasDb";
 import querystring from "query-string";
+// import fetch from "node-fetch";
+import { URLSearchParams } from "url";
 
 function makeid(length: number) {
   let result = "";
@@ -52,7 +54,7 @@ export class SpotifyController {
             ? process.env.spotifyClientID
             : "",
           scope: scope,
-          redirect_uri: "http://localhost:3000/callback",
+          redirect_uri: "http://localhost:3000/spotify/callback",
           // redirect_uri: process.env.spotifyRedirectURI
           //   ? process.env.spotifyRedirectURI
           //   : "",
@@ -64,9 +66,10 @@ export class SpotifyController {
 
   //Callback api from the redirect of login (in front-end)
   //Redirects to desired front end page
-  static callback(req: express.Request, res: express.Response): void {
+  static async callback(req: express.Request, res: express.Response): Promise<void> {
+    console.log("callback req: " + JSON.stringify(req.query, null, 2));
     let code = req.query.code || null;
-    let state = req.query.stae || null;
+    let state = req.query.state || null;
 
     if (state === null) {
       console.log("error: state is null... handle later");
@@ -75,18 +78,57 @@ export class SpotifyController {
       //     error: 'state_mismatch'
       //   }));
     } else {
-      let authOptions = {
-        url: 'https://accounts.spotify.com/api/token',
-        form: {
-          code: code,
-          redirect_uri: process.env.spotifyRedirectURI,
-          grant_type: 'authorization_code'
-        },
-        headers: {
+      // let authOptions = {
+      //   url: 'https://accounts.spotify.com/api/token',
+      //   form: {
+      //     code: code,
+      //     redirect_uri: process.env.spotifyRedirectURI,
+      //     grant_type: 'authorization_code'
+      //   },
+      //   headers: {
+      //     'Authorization': 'Basic ' + (Buffer.from(process.env.spotifyClientID + ':' + process.env.spotifyClientSecret).toString('base64'))
+      //   },
+      //   json: true
+      // };
+      // console.log(authOptions);
+
+      try {
+        
+        const params = new URLSearchParams();
+        params.append('grant_type', 'authorization_code');
+        params.append('code', `${code}`);
+        params.append('redirect_uri', 'http://localhost:3000/spotify/callback');
+
+        const response = await axios.post('https://accounts.spotify.com/api/token',
+        params.toString(),
+        //`grant_type=authorization_code&code=${code}&redirect_uri=http://localhost:3000/spotify/callback}`,
+        {headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Basic ' + (Buffer.from(process.env.spotifyClientID + ':' + process.env.spotifyClientSecret).toString('base64'))
-        },
-        json: true
-      };
+        }})
+        console.log('access token: ' + response.data.access_token);
+
+        const redirectParams = new URLSearchParams();
+        redirectParams.append('access_token', `${response.data.access_token}`);
+        redirectParams.append('token_type', `${response.data.token_type}`);
+        redirectParams.append('scope', `${response.data.scope}`);
+        redirectParams.append('expires_in', `${response.data.expires_in}`)
+        redirectParams.append('refresh_token', `${response.data.refresh_token}`)
+        res.redirect(`http://localhost:4200?${redirectParams.toString()}`);
+
+      } catch(e) {
+        console.log(e);
+        res.redirect('http://localhost:4200');
+      }
+
+      // ('https://accounts.spotify.com/api/token', {
+      //   method: 'POST', 
+      //   headers: {
+      //     'Content-Type': 'application/x-www-form-urlencoded',
+      //     'Authorization': 'Basic ' + (Buffer.from(process.env.spotifyClientID + ':' + process.env.spotifyClientSecret).toString('base64'))
+      //   },
+      //   body: `grant_type=authorization_code&code=${code}&redirect_uri=${process.env.spotifyRedirectURI}`
+      // }).then(result => result.json()).then(data => console.log(data))
     }
   }
 }
