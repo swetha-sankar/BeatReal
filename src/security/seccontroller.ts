@@ -125,7 +125,7 @@ export class SecController {
 	//user populated by middleware.  This will not be called if token is invalid
 	//we pull all other data from the token (including the id)
 	public static async changePwd(req: Request, res: Response): Promise<void> {
-		const user = req.body.username;
+		const user = req.body.user;
 		const newPass = req.body.password;
 		if (!user || !newPass) {
 			res.send({ status: "error", data: "invalid request" });
@@ -144,7 +144,7 @@ export class SecController {
 			};
 			const result = await db.update(
 				"User",
-				{ username: req.body.username },
+				{ username: user.username },
 				userRecord
 			);
 			if (result.data.matchedCount > 0)
