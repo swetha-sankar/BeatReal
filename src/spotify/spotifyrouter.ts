@@ -1,5 +1,5 @@
 import { Router } from "../shared/router";
-import { SpotifyController } from "./spotifycontroller";
+import { SpotifyController } from "./spotifycontroller.js";
 
 //defines the routes for the api module and attaches them to the controller.
 export class SpotifyRouter extends Router {
