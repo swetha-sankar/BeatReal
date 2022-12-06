@@ -53,23 +53,23 @@ export class MongoAtlasDB {
   //update record in collection with _id=id and replace it with updateObj
   public async update(
     collection: string,
-    id: string,
+    query: any,
     updateObj: any
   ): Promise<any> {
     const requestObject = this.getRequestObject(
       collection,
       "/action/replaceOne",
-      { filter: { _id: { $oid: id } }, replacement: updateObj }
+      { filter: query, replacement: updateObj }
     );
     return axios(requestObject);
   }
 
   //delete a user given an id
-  public async deleteOne(collection: string, id: string): Promise<any> {
+  public async deleteOne(collection: string, query: any): Promise<any> {
     const requestObject = this.getRequestObject(
       collection,
       "/action/deleteOne",
-      { filter: { _id: { $oid: id } } }
+      { filter: query }
     );
     return axios(requestObject);
   }
