@@ -146,7 +146,7 @@ export class SpotifyController {
         redirectParams.append('scope', `${response.data.scope}`);
         redirectParams.append('expires_in', `${response.data.expires_in}`)
         redirectParams.append('refresh_token', `${response.data.refresh_token}`)
-        res.redirect(`http://localhost:4200/profile?${redirectParams.toString()}`);
+        res.redirect(`http://localhost:4200/feed?${redirectParams.toString()}`);
 
       } catch(e) {
         console.log(e);
