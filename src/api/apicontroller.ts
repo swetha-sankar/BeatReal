@@ -134,7 +134,6 @@ export class ApiController {
 				Config.databaseConfig.dataSource,
 				"BeatReal"
 			);
-
 			const user: User = (
 				await db.findOne("User", { username: req.params.username })
 			).data.document;
@@ -148,8 +147,20 @@ export class ApiController {
 				profilePic: user.profilePic,
 				reel: user.reels[user.reels.length - 1],
 			}));
+			if (user.reels.length != 0) {
+				const finalFeed: Post[] = [
+					{
+						username: user.username,
+						profilePic: user.profilePic,
+						reel: user.reels[user.reels.length - 1],
+					},
+					...friendPosts,
+				];
 
-			res.send({ status: "ok", result: friendPosts });
+				res.send({ status: "ok", result: finalFeed });
+			} else {
+				res.send({ status: "ok", result: friendPosts });
+			}
 		} catch (e) {
 			console.error(e);
 			res.send({ status: "error", data: e });
