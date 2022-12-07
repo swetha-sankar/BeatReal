@@ -143,7 +143,9 @@ export class ApiController {
 				await db.find("User", { username: { $in: user.friendNames } })
 			).data.documents;
 
-			const friendPosts: Post[] = friends.map((user: User) => ({
+			const friendsWithPosts = friends.filter((user: User) => user.reels.length !== 0);
+
+			const friendPosts: Post[] = friendsWithPosts.map((user: User) => ({
 				username: user.username,
 				profilePic: user.profilePic,
 				reel: user.reels[user.reels.length - 1],
